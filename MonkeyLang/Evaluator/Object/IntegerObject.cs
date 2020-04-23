@@ -2,7 +2,7 @@
 {
     public class IntegerObject : IObject
     {
-        public Integer(int value)
+        public IntegerObject(int value)
         {
             this.Value = value;
         }
@@ -11,6 +11,6 @@
 
         public ObjectType Type => ObjectType.Integer;
 
-        public string Inspect => Value.ToString();
+        public string Inspect() => Value.ToString();
     }
 }

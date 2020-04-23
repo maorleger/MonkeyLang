@@ -8,11 +8,13 @@ namespace MonkeyLang.Repl
     public class MonkeyRepl
     {
         [ImportingConstructor]
-        public MonkeyRepl([Import] Parser parser)
+        public MonkeyRepl([Import] Evaluator evaluator, [Import] Parser parser)
         {
-            Parser = parser;
+            Evaluator = evaluator;
+            Parser = parser; //TODO: get rid of this when evaluator can display errors
         }
 
+        public Evaluator Evaluator { get; }
         public Parser Parser { get; }
 
         public void Start()
@@ -30,7 +32,7 @@ namespace MonkeyLang.Repl
                 } 
                 else
                 {
-                    Console.WriteLine(result.Program.StringValue);
+                    Console.WriteLine(Evaluator.Evaluate(result.Program).Inspect());
                 }
             }
         }

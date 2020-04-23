@@ -203,6 +203,7 @@ fn(x, y) { x + y; }
 
             var actual = AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
             var callExpression = AssertAndCast<CallExpression>(actual.Expression);
+            Assert.Equal("add(1, (2 * 3), (4 + 5))", callExpression.StringValue);
         }
 
         [Fact]

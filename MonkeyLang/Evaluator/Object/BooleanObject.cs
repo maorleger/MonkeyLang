@@ -15,6 +15,6 @@ namespace MonkeyLang
 
         public ObjectType Type => ObjectType.Boolean;
 
-        public string Inspect => Value.ToString();
+        public string Inspect() => Value.ToString();
     }
 }

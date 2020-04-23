@@ -12,6 +12,6 @@ namespace MonkeyLang
 
         public ObjectType Type => ObjectType.Null;
 
-        public string Inspect => "null";
+        public string Inspect() => "null";
     }
 }
