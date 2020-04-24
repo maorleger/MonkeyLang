@@ -1,5 +1,8 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using Pidgin;
+using System;
 using System.Collections.Generic;
+using System.Reflection.PortableExecutable;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Xunit;
@@ -47,6 +50,26 @@ namespace MonkeyLang.Tests
             {
                 new object[] { "true", true },
                 new object[] { "false", false }
+            };
+
+        [Theory]
+        [MemberData(nameof(PrefixData))]
+        public void Evaluate_CanEvalPrefixExpressions(string input, object expected)
+        {
+            var actual = subject.Evaluate(input);
+            Assert.NotNull(actual);
+            Assert.IsType(expected.GetType(), actual);
+            Assert.Equal(expected, actual);
+        }
+
+        public static IEnumerable<object[]> PrefixData =>
+            new List<object[]>
+            {
+                new object[] { "!true", BooleanObject.False },
+                new object[] { "!false", BooleanObject.True },
+                new object[] { "!!true", BooleanObject.True },
+                new object[] { "!!false", BooleanObject.False },
+                new object[] { "!!5", BooleanObject.True },
             };
 
         private T AssertAndCast<T>(object obj) where T : class

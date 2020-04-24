@@ -6,7 +6,9 @@ namespace MonkeyLang
 {
     public class NullObject : IObject
     {
-        public NullObject()
+        public static NullObject Null = new NullObject();
+
+        private NullObject()
         {
         }
 

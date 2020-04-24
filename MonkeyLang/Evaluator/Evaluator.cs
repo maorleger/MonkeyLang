@@ -18,7 +18,7 @@ namespace MonkeyLang
 
         private Parser Parser { get; }
 
-        public IObject? Evaluate(string input)
+        public IObject Evaluate(string input)
         {
             AST result = Parser.ParseProgram(input);
             // TODO: what to do with errors?
@@ -26,21 +26,41 @@ namespace MonkeyLang
             return Evaluate(result.Program);
         }
 
-        public IObject? Evaluate(INode node)
+        public IObject Evaluate(INode node)
         {
             return node switch
             {
                 Program program => EvaluateStatements(program.Statements),
                 ExpressionStatement exprStatement => Evaluate(exprStatement.Expression),
                 IntegerLiteral intLiteral => new IntegerObject(intLiteral.Value),
-                Boolean boolean => new BooleanObject(boolean.Value),
+                Boolean boolean => BooleanObject.FromNative(boolean.Value),
+                PrefixExpression prefixExpr => EvaluatePrefix(Evaluate(prefixExpr.Right), prefixExpr.Operator),
                 _ => throw new ArgumentException("why?"),
             };
         }
 
-        private IObject? EvaluateStatements(IImmutableList<IStatement> statements)
+        private IObject EvaluatePrefix(IObject right, string op)
         {
-            IObject? result = null;
+            return op switch
+            {
+                "!" => EvaluateBang(right),
+                _ => throw new NotImplementedException()
+            };
+        }
+
+        private IObject EvaluateBang(IObject right)
+        {
+            return right switch
+            {
+                BooleanObject booleanObj => BooleanObject.FromNative(!booleanObj.Value),
+                NullObject _ => BooleanObject.True,
+                _ => BooleanObject.False
+            };
+        }
+
+        private IObject EvaluateStatements(IImmutableList<IStatement> statements)
+        {
+            IObject result = NullObject.Null;
 
             foreach (var item in statements)
             {
