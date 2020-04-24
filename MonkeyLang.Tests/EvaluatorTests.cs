@@ -54,7 +54,7 @@ namespace MonkeyLang.Tests
 
         [Theory]
         [MemberData(nameof(PrefixData))]
-        public void Evaluate_CanEvalPrefixExpressions(string input, object expected)
+        public void Evaluate_CanEvalPrefixExpressions(string input, IObject expected)
         {
             var actual = subject.Evaluate(input);
             Assert.NotNull(actual);
@@ -70,6 +70,9 @@ namespace MonkeyLang.Tests
                 new object[] { "!!true", BooleanObject.True },
                 new object[] { "!!false", BooleanObject.False },
                 new object[] { "!!5", BooleanObject.True },
+                new object[] { "-5", new IntegerObject(-5) },
+                new object[] { "-10", new IntegerObject(-10) },
+                new object[] { "-true", NullObject.Null }
             };
 
         private T AssertAndCast<T>(object obj) where T : class

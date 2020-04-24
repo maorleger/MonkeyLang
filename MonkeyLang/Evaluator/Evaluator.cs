@@ -35,7 +35,7 @@ namespace MonkeyLang
                 IntegerLiteral intLiteral => new IntegerObject(intLiteral.Value),
                 Boolean boolean => BooleanObject.FromNative(boolean.Value),
                 PrefixExpression prefixExpr => EvaluatePrefix(Evaluate(prefixExpr.Right), prefixExpr.Operator),
-                _ => throw new ArgumentException("why?"),
+                _ => throw new ArgumentException($"No Evaulator for {node}"),
             };
         }
 
@@ -43,16 +43,25 @@ namespace MonkeyLang
         {
             return op switch
             {
-                "!" => EvaluateBang(right),
-                _ => throw new NotImplementedException()
+                "!" => EvaluateUnaryNot(right),
+                "-" => EvaluateUnaryMinus(right),
+                _ => throw new NotImplementedException($"Prefix operator {op} not implemented")
             };
         }
 
-        private IObject EvaluateBang(IObject right)
+        private IObject EvaluateUnaryMinus(IObject right)
+        {
+            if (right is IntegerObject i) {
+                return new IntegerObject(-i.Value);
+            }
+            return NullObject.Null;
+        }
+
+        private IObject EvaluateUnaryNot(IObject right)
         {
             return right switch
             {
-                BooleanObject booleanObj => BooleanObject.FromNative(!booleanObj.Value),
+                BooleanObject b => BooleanObject.FromNative(!b.Value),
                 NullObject _ => BooleanObject.True,
                 _ => BooleanObject.False
             };
