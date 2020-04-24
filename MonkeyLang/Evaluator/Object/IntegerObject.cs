@@ -23,14 +23,12 @@ namespace MonkeyLang
 
         public bool Equals(IntegerObject? other)
         {
-            return other != null &&
-                   Value == other.Value &&
-                   Type == other.Type;
+            return other != null && Value == other.Value;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Value, Type);
+            return HashCode.Combine(Value);
         }
 
         public static bool operator ==(IntegerObject? left, IntegerObject? right)

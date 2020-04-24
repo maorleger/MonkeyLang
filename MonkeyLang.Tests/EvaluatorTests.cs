@@ -32,7 +32,18 @@ namespace MonkeyLang.Tests
             new List<object[]>
             {
                 new object[] { "5", 5 },
-                new object[] { "10", 10 }
+                new object[] { "10", 10 },
+                new object[] {"5 + 5 + 5 + 5 - 10", 10},
+                new object[] {"2 * 2 * 2 * 2 * 2", 32},
+                new object[] {"-50 + 100 + -50", 0},
+                new object[] {"5 * 2 + 10", 20},
+                new object[] {"5 + 2 * 10", 25},
+                new object[] {"20 + 2 * -10", 0},
+                new object[] {"50 / 2 * 2 + 10", 60},
+                new object[] {"2 * (5 + 10)", 30},
+                new object[] {"3 * 3 * 3 + 10", 37},
+                new object[] {"3 * (3 * 3) + 10", 37},
+                new object[] {"(5 + 10 * 2 + 15 / 3) * 2 + -10", 50}
             };
 
         [Theory]
@@ -49,7 +60,24 @@ namespace MonkeyLang.Tests
             new List<object[]>
             {
                 new object[] { "true", true },
-                new object[] { "false", false }
+                new object[] { "false", false },
+                new object[] {"1 < 2", true},
+                new object[] {"1 > 2", false},
+                new object[] {"1 < 1", false},
+                new object[] {"1 > 1", false},
+                new object[] {"1 == 1", true},
+                new object[] {"1 != 1", false},
+                new object[] {"1 == 2", false},
+                new object[] {"1 != 2", true},
+                new object[] {"true == true", true},
+                new object[] {"false == false", true},
+                new object[] {"true == false", false},
+                new object[] {"true != false", true},
+                new object[] {"false != true", true},
+                new object[] {"(1 < 2) == true", true},
+                new object[] {"(1 < 2) == false", false},
+                new object[] {"(1 > 2) == true", false},
+                new object[] {"(1 > 2) == false", true},
             };
 
         [Theory]
