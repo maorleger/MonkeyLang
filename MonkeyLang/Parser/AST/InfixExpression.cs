@@ -6,7 +6,7 @@ namespace MonkeyLang
 {
     public class InfixExpression : IExpression
     {
-        public InfixExpression(Token token, IExpression left, string op, IExpression right)
+        public InfixExpression(Token token, IExpression left, TokenType op, IExpression right)
         {
             this.Token = token;
             this.Left = left;
@@ -16,11 +16,11 @@ namespace MonkeyLang
 
         public Token Token { get; }
         public IExpression Left { get; }
-        public string Operator { get; }
+        public TokenType Operator { get; }
         public IExpression Right { get; }
 
         public string TokenLiteral => Token.Literal;
 
-        public string StringValue => $"({this.Left.StringValue} {this.Operator} {this.Right.StringValue})";
+        public string StringValue => $"({this.Left.StringValue} {this.Token.Literal} {this.Right.StringValue})";
     }
 }

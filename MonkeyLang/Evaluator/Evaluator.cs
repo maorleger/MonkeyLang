@@ -40,7 +40,7 @@ namespace MonkeyLang
             };
         }
 
-        private IObject EvaluateInfix(IObject left, string op, IObject right)
+        private IObject EvaluateInfix(IObject left, TokenType op, IObject right)
         {
             if (left is IntegerObject li && right is IntegerObject ri)
             {
@@ -55,38 +55,38 @@ namespace MonkeyLang
             return NullObject.Null;
         }
 
-        private IObject EvaluateIntegerInfix(IntegerObject l, string op, IntegerObject r)
+        private IObject EvaluateIntegerInfix(IntegerObject l, TokenType op, IntegerObject r)
         {
             return op switch
             {
-                "+" => new IntegerObject(l.Value + r.Value),
-                "-" => new IntegerObject(l.Value - r.Value),
-                "*" => new IntegerObject(l.Value * r.Value),
-                "/" => new IntegerObject(l.Value / r.Value),
-                "<" => BooleanObject.FromNative(l.Value < r.Value),
-                ">" => BooleanObject.FromNative(l.Value > r.Value),
-                "==" => BooleanObject.FromNative(l.Value == r.Value),
-                "!=" => BooleanObject.FromNative(l.Value != r.Value),
+                TokenType.Plus => new IntegerObject(l.Value + r.Value),
+                TokenType.Minus => new IntegerObject(l.Value - r.Value),
+                TokenType.Asterisk => new IntegerObject(l.Value * r.Value),
+                TokenType.Slash => new IntegerObject(l.Value / r.Value),
+                TokenType.LT => BooleanObject.FromNative(l.Value < r.Value),
+                TokenType.GT => BooleanObject.FromNative(l.Value > r.Value),
+                TokenType.Eq => BooleanObject.FromNative(l.Value == r.Value),
+                TokenType.Not_Eq => BooleanObject.FromNative(l.Value != r.Value),
                 _ => NullObject.Null
             };
         }
 
-        private IObject EvaluateBooleanInfix(BooleanObject l, string op, BooleanObject r)
+        private IObject EvaluateBooleanInfix(BooleanObject l, TokenType op, BooleanObject r)
         {
             return op switch
             {
-                "==" => BooleanObject.FromNative(l.Value == r.Value),
-                "!=" => BooleanObject.FromNative(l.Value != r.Value),
+                TokenType.Eq => BooleanObject.FromNative(l.Value == r.Value),
+                TokenType.Not_Eq => BooleanObject.FromNative(l.Value != r.Value),
                 _ => NullObject.Null
             };
         }
 
-        private IObject EvaluatePrefix(IObject right, string op)
+        private IObject EvaluatePrefix(IObject right, TokenType op)
         {
             return op switch
             {
-                "!" => EvaluateUnaryNot(right),
-                "-" => EvaluateUnaryMinus(right),
+                TokenType.Bang => EvaluateUnaryNot(right),
+                TokenType.Minus => EvaluateUnaryMinus(right),
                 _ => NullObject.Null
             };
         }

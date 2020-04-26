@@ -2,7 +2,7 @@
 {
     public class PrefixExpression : IExpression
     {
-        public PrefixExpression(Token token, string op, IExpression right)
+        public PrefixExpression(Token token, TokenType op, IExpression right)
         {
             this.Token = token;
             this.Operator = op;
@@ -10,11 +10,11 @@
         }
 
         public Token Token { get; }
-        public string Operator { get; }
+        public TokenType Operator { get; }
         public IExpression Right { get; }
 
         public string TokenLiteral => Token.Literal;
 
-        public string StringValue => $"({this.Operator}{this.Right.StringValue})";
+        public string StringValue => $"({this.Token.Literal}{this.Right.StringValue})";
     }
 }

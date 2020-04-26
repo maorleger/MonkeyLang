@@ -47,8 +47,8 @@ namespace MonkeyLang
         private Token PeekToken { get; set; }
 
         private Dictionary<TokenType, Func<IExpression>> PrefixParseFns { get; }
-        private Dictionary<TokenType, Func<IExpression, IExpression>> InfixParseFns;
-        private Dictionary<TokenType, Precedence> Precedences = new Dictionary<TokenType, Precedence>()
+        private readonly Dictionary<TokenType, Func<IExpression, IExpression>> InfixParseFns;
+        private readonly Dictionary<TokenType, Precedence> Precedences = new Dictionary<TokenType, Precedence>()
         {
             { TokenType.Eq, Precedence.Equals },
             { TokenType.Not_Eq, Precedence.Equals },
@@ -212,13 +212,14 @@ namespace MonkeyLang
 
             Trace.WriteLine("END PREFIX");
             Trace.Unindent();
-            return new PrefixExpression(token, token.Literal, right);
+            return new PrefixExpression(token, token.Type, right);
         }
 
         private IExpression ParseInfixExpression(IExpression left)
         {
             Trace.Indent();
             Trace.WriteLine("BEGIN INFIX");
+
             var token = CurrentToken;
             var precedence = CurrentPrecedence();
 
@@ -228,7 +229,7 @@ namespace MonkeyLang
 
             Trace.WriteLine("END INFIX");
             Trace.Unindent();
-            return new InfixExpression(token, left, token.Literal, right);
+            return new InfixExpression(token, left, token.Type, right);
         }
         
         private IExpression ParseCallExpression(IExpression function)
@@ -242,7 +243,7 @@ namespace MonkeyLang
             Trace.WriteLine("END CALL_EXPRESSION");
             Trace.Unindent();
 
-            return new CallExpression(CurrentToken, function, arguments);
+            return new CallExpression(token, function, arguments);
         }
 
         private IEnumerable<IExpression> ParseCallArguments()

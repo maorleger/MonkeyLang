@@ -185,7 +185,7 @@ fn(x, y) { x + y; }
             var bodyExpr = AssertAndCast<InfixExpression>(body.Expression);
 
             Assert.Equal("x", bodyExpr.Left.TokenLiteral);
-            Assert.Equal("+", bodyExpr.Operator);
+            Assert.Equal(TokenType.Plus, bodyExpr.Operator);
             Assert.Equal("y", bodyExpr.Right.TokenLiteral);
         }
 
@@ -236,7 +236,7 @@ if (x < y) { x } else { y }
 
         [Theory]
         [MemberData(nameof(PrefixExpressionData))]
-        public void Parser_CanParsePrefixExpressions(string input, string expectedOperator, int expectedValue)
+        public void Parser_CanParsePrefixExpressions(string input, TokenType expectedOperator, int expectedValue)
         {
             AST result = subject.ParseProgram(input);
 
@@ -254,13 +254,13 @@ if (x < y) { x } else { y }
         public static IEnumerable<object[]> PrefixExpressionData =>
             new List<object[]>
             {
-                new object[] { "!5;", "!", 5 },
-                new object[] { "-15;", "-", 15 }
+                new object[] { "!5;", TokenType.Bang, 5 },
+                new object[] { "-15;", TokenType.Minus, 15 }
             };
 
         [Theory]
         [MemberData(nameof(InfixExpressionData))]
-        public void Parser_CanParseInfixExpressions(string input, int expectedLeft, string expectedOp, int expectedRight)
+        public void Parser_CanParseInfixExpressions(string input, int expectedLeft, TokenType expectedOp, int expectedRight)
         {
             AST result = subject.ParseProgram(input);
 
@@ -281,14 +281,14 @@ if (x < y) { x } else { y }
         public static IEnumerable<object[]> InfixExpressionData =>
             new List<object[]>
             {
-                new object[] { "5 + 6", 5, "+", 6 },
-                new object[] { "5 - 6", 5, "-", 6 },
-                new object[] { "5 * 6", 5, "*", 6 },
-                new object[] { "5 / 6", 5, "/", 6 },
-                new object[] { "5 > 6", 5, ">", 6 },
-                new object[] { "5 < 6", 5, "<", 6 },
-                new object[] { "5 == 6", 5, "==", 6 },
-                new object[] { "5 != 6", 5, "!=", 6 },
+                new object[] { "5 + 6", 5, TokenType.Plus, 6 },
+                new object[] { "5 - 6", 5, TokenType.Minus, 6 },
+                new object[] { "5 * 6", 5, TokenType.Asterisk, 6 },
+                new object[] { "5 / 6", 5, TokenType.Slash, 6 },
+                new object[] { "5 > 6", 5, TokenType.GT, 6 },
+                new object[] { "5 < 6", 5, TokenType.LT, 6 },
+                new object[] { "5 == 6", 5, TokenType.Eq, 6 },
+                new object[] { "5 != 6", 5, TokenType.Not_Eq, 6 },
             };
 
         [Theory]
