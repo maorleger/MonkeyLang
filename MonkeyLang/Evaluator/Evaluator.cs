@@ -42,17 +42,12 @@ namespace MonkeyLang
 
         private IObject EvaluateInfix(IObject left, TokenType op, IObject right)
         {
-            if (left is IntegerObject li && right is IntegerObject ri)
+            return (left, right) switch
             {
-                return EvaluateIntegerInfix(li, op, ri);
-            }
-
-            if (left is BooleanObject lb && right is BooleanObject rb)
-            {
-                return EvaluateBooleanInfix(lb, op, rb);
-            }
-
-            return NullObject.Null;
+                (IntegerObject li, IntegerObject ri) => EvaluateIntegerInfix(li, op, ri),
+                (BooleanObject lb, BooleanObject rb) => EvaluateBooleanInfix(lb, op, rb),
+                _ => NullObject.Null
+            };
         }
 
         private IObject EvaluateIntegerInfix(IntegerObject l, TokenType op, IntegerObject r)
