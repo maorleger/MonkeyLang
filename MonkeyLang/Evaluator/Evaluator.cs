@@ -30,13 +30,14 @@ namespace MonkeyLang
         {
             return node switch
             {
-                Program program => EvaluateStatements(program.Statements),
+                Program program => EvaluateStatements(program.Statements, unwrapReturn: true),
                 ExpressionStatement exprStatement => Evaluate(exprStatement.Expression),
                 IntegerLiteral intLiteral => new IntegerObject(intLiteral.Value),
                 Boolean boolean => BooleanObject.FromNative(boolean.Value),
                 PrefixExpression prefixExpr => EvaluatePrefix(Evaluate(prefixExpr.Right), prefixExpr.Operator),
                 InfixExpression infixExpr => EvaluateInfix(Evaluate(infixExpr.Left), infixExpr.Operator, Evaluate(infixExpr.Right)),
                 IfExpression ifExpr => EvaluateConditional(Evaluate(ifExpr.Condition), ifExpr.Consequence, ifExpr.Alternative),
+                ReturnStatement returnStmt => new ReturnValue(Evaluate(returnStmt.ReturnValue)),
                 _ => NullObject.Null
             };
         }
@@ -130,13 +131,18 @@ namespace MonkeyLang
             };
         }
 
-        private IObject EvaluateStatements(IImmutableList<IStatement> statements)
+        private IObject EvaluateStatements(IImmutableList<IStatement> statements, bool unwrapReturn = false)
         {
             IObject result = NullObject.Null;
 
             foreach (var item in statements)
             {
                 result = Evaluate(item);
+
+                if (result is ReturnValue returnVal)
+                {
+                    return unwrapReturn ? returnVal.Value : returnVal;
+                }
             }
 
             return result;

@@ -4,6 +4,7 @@
     {
         Integer,
         Boolean,
+        Return,
         Null
     }
 }

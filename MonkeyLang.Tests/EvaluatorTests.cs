@@ -125,6 +125,30 @@ namespace MonkeyLang.Tests
                 new object[] {"if (1 < 2) { 10 } else { 20 }", new IntegerObject(10) },
             };
 
+        [Theory]
+        [MemberData(nameof(ReturnData))]
+        public void Evaluate_CanEvalReturnStatements(string input, IObject expected)
+        {
+            var actual = subject.Evaluate(input);
+            Assert.NotNull(actual);
+            Assert.IsType(expected.GetType(), actual);
+            Assert.Equal(expected, actual);
+        }
+
+        public static IEnumerable<object[]> ReturnData =>
+            new List<object[]>
+            {
+                new object[] { "return 10;", new IntegerObject(10) },
+                new object[] { "return 10; 9;", new IntegerObject(10) },
+                new object[] { "return 2 + 5; 9", new IntegerObject(7) },
+                new object[] { "9; return 2 + 5; 9", new IntegerObject(7) },
+                new object[]
+                {
+                    "if (10 > 1) { if (10 > 1) { return 10; } return 1; }",
+                    new IntegerObject(10)
+                }
+            };
+
         private T AssertAndCast<T>(object obj) where T : class
         {
             Assert.IsType<T>(obj);
