@@ -103,6 +103,28 @@ namespace MonkeyLang.Tests
                 new object[] { "-true", NullObject.Null }
             };
 
+        [Theory]
+        [MemberData(nameof(ConditionalData))]
+        public void Evaluate_CanEvalConditionalExpressions(string input, IObject expected)
+        {
+            var actual = subject.Evaluate(input);
+            Assert.NotNull(actual);
+            Assert.IsType(expected.GetType(), actual);
+            Assert.Equal(expected, actual);
+        }
+
+        public static IEnumerable<object[]> ConditionalData =>
+            new List<object[]>
+            {
+                new object[] {"if (true) { 10 }", new IntegerObject(10) },
+                new object[] {"if (false) { 10 }", NullObject.Null },
+                new object[] {"if (1) { 10 }", new IntegerObject(10) },
+                new object[] {"if (1 < 2) { 10 }", new IntegerObject(10) },
+                new object[] {"if (1 > 2) { 10 }", NullObject.Null },
+                new object[] {"if (1 > 2) { 10 } else { 20 }", new IntegerObject(20) },
+                new object[] {"if (1 < 2) { 10 } else { 20 }", new IntegerObject(10) },
+            };
+
         private T AssertAndCast<T>(object obj) where T : class
         {
             Assert.IsType<T>(obj);

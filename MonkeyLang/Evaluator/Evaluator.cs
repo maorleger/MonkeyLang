@@ -36,6 +36,7 @@ namespace MonkeyLang
                 Boolean boolean => BooleanObject.FromNative(boolean.Value),
                 PrefixExpression prefixExpr => EvaluatePrefix(Evaluate(prefixExpr.Right), prefixExpr.Operator),
                 InfixExpression infixExpr => EvaluateInfix(Evaluate(infixExpr.Left), infixExpr.Operator, Evaluate(infixExpr.Right)),
+                IfExpression ifExpr => EvaluateConditional(Evaluate(ifExpr.Condition), ifExpr.Consequence, ifExpr.Alternative),
                 _ => NullObject.Null
             };
         }
@@ -83,6 +84,31 @@ namespace MonkeyLang
                 TokenType.Bang => EvaluateUnaryNot(right),
                 TokenType.Minus => EvaluateUnaryMinus(right),
                 _ => NullObject.Null
+            };
+        }
+
+        private IObject EvaluateConditional(IObject condition, BlockStatement consequence, BlockStatement? alternative)
+        {
+            if (IsTruthy(condition))
+            {
+                return EvaluateStatements(consequence.Statements);
+            }
+
+            if (alternative != null)
+            {
+                return EvaluateStatements(alternative.Statements);
+            }
+
+            return NullObject.Null;
+        }
+
+        private bool IsTruthy(IObject condition)
+        {
+            return condition switch
+            {
+                BooleanObject booleanObj => booleanObj.Value,
+                NullObject _ => false,
+                _ => true
             };
         }
 
