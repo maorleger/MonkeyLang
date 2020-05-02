@@ -14,23 +14,28 @@ namespace MonkeyLang
         public Evaluator([Import] Parser parser)
         {
             Parser = parser;
+            Environments = new Stack<MonkeyEnvironment>();
         }
 
         private Parser Parser { get; }
+        private Stack<MonkeyEnvironment> Environments { get; }
 
         public IObject Evaluate(string input)
         {
             AST result = Parser.ParseProgram(input);
             if (result.HasErrors)
             {
-                return new ErrorObject(result.Errors.Aggregate(string.Empty, (acc, st) => $"{acc}{st.Message};"));
+                return new ErrorObject(
+                    result.Errors.Aggregate(
+                        string.Empty, 
+                        (acc, st) => $"{acc}{st.Message};"));
             }
-            // TODO: what to do with errors?
 
+            Environments.Push(new MonkeyEnvironment());
             return Evaluate(result.Program);
         }
 
-        public IObject Evaluate(INode node)
+        private IObject Evaluate(INode node)
         {
             try
             {
@@ -44,6 +49,8 @@ namespace MonkeyLang
                     InfixExpression infixExpr => EvaluateInfix(Evaluate(infixExpr.Left), infixExpr.Operator, Evaluate(infixExpr.Right)),
                     IfExpression ifExpr => EvaluateConditional(Evaluate(ifExpr.Condition), ifExpr.Consequence, ifExpr.Alternative),
                     ReturnStatement returnStmt => new ReturnValue(Evaluate(returnStmt.ReturnValue)),
+                    LetStatement letStmt => EvaluateLet(letStmt.Name, Evaluate(letStmt.Value)),
+                    Identifier ident => EvaluateIdentifier(ident),
                     _ => NullObject.Null
                 };
             }
@@ -51,6 +58,25 @@ namespace MonkeyLang
             {
                 return new ErrorObject(ex.Message);
             }
+        }
+
+        private IObject EvaluateIdentifier(Identifier ident)
+        {
+            //TODO: should I use Value or implement equality for an identifier?
+            var result = Environments.Peek().Get(ident.Value);
+
+            if (result == null)
+            {
+                throw new MonkeyEvaluatorException($"identifier not found: {ident.StringValue}");
+            }
+
+            return result;
+        }
+
+        private IObject EvaluateLet(Identifier name, IObject value)
+        {
+            Environments.Peek().Set(name.Value, value);
+            return value;
         }
 
         private IObject EvaluateInfix(IObject left, TokenType op, IObject right)
@@ -138,7 +164,7 @@ namespace MonkeyLang
             {
                 BooleanObject b => BooleanObject.FromNative(!b.Value),
                 NullObject _ => BooleanObject.True,
-                _ => throw new MonkeyEvaluatorException($"unknown operator: !{right.Type}")
+                _ => BooleanObject.False
             };
         }
 

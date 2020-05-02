@@ -100,7 +100,6 @@ namespace MonkeyLang.Tests
                 new object[] { "!!5", BooleanObject.True },
                 new object[] { "-5", new IntegerObject(-5) },
                 new object[] { "-10", new IntegerObject(-10) },
-                new object[] { "-true", NullObject.Null }
             };
 
         [Theory]
@@ -203,7 +202,30 @@ namespace MonkeyLang.Tests
                 {
                     "if (10 > 1) { if (10 > 1) { return true + false } } return 1; }",
                     "unknown operator: Boolean + Boolean",
+                },
+                new object[]
+                {
+                    "foobar",
+                    "identifier not found: foobar",
                 }
+            };
+
+        [Theory]
+        [MemberData(nameof(LetStatementData))]
+        public void Evaluate_CanEvaluateLetStatements(string input, int expected)
+        {
+            var actual = subject.Evaluate(input);
+            Assert.NotNull(actual);
+            var intObj = AssertAndCast<IntegerObject>(actual);
+            Assert.Equal(expected, intObj.Value);
+        }
+
+        public static IEnumerable<object[]> LetStatementData =>
+            new List<object[]>
+            {
+                new object[] { "let a = 5; a;", 5 },
+                new object[] { "let a = 5; let b = a; b;", 5 },
+                new object[] { "let a = 5 + 5; let b = a; let c = a + b + 5; c;", 25 }
             };
 
 
