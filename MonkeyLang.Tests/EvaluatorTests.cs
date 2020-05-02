@@ -154,7 +154,7 @@ namespace MonkeyLang.Tests
             var actual = subject.Evaluate("let 5 x");
             Assert.NotNull(actual);
             var error = AssertAndCast<ErrorObject>(actual);
-            Assert.Equal("Expected an identifier, got Token [Type='Int', Literal='5'];", error.Message);
+            Assert.Contains("Expected an identifier, got Token [Type='Int', Literal='5'];", error.Messages);
         }
 
         [Theory]
@@ -164,7 +164,7 @@ namespace MonkeyLang.Tests
             var actual = subject.Evaluate(input);
             Assert.NotNull(actual);
             var error = AssertAndCast<ErrorObject>(actual);
-            Assert.Equal(expected, error.Message);
+            Assert.Contains(expected, error.Messages);
         }
 
         public static IEnumerable<object[]> EvalErrorData =>

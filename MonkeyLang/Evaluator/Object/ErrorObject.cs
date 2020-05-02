@@ -6,15 +6,15 @@ namespace MonkeyLang
 {
     public class ErrorObject : IObject
     {
-        public ErrorObject(string message)
+        public ErrorObject(IEnumerable<string> errorMessages)
         {
-            Message = message;
+            Messages = errorMessages;
         }
 
-        public string Message { get; }
+        public IEnumerable<string> Messages { get; }
 
         public ObjectType Type => ObjectType.Error;
 
-        public string Inspect() => $"ERROR: {Message}";
+        public string Inspect() => $"ERRORS:{Environment.NewLine}{string.Join(Environment.NewLine, Messages)}";
     }
 }

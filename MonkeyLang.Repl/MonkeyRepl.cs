@@ -25,15 +25,7 @@ namespace MonkeyLang.Repl
             string line;
             while (!string.IsNullOrWhiteSpace(line = Console.ReadLine()))
             {
-                AST result = Parser.ParseProgram(line);
-                if (result.HasErrors)
-                {
-                    PrintParserErrors(result.Errors);
-                } 
-                else
-                {
-                    Console.WriteLine(Evaluator.Evaluate(result.Program).Inspect());
-                }
+                Console.WriteLine(Evaluator.Evaluate(line).Inspect());
             }
         }
 

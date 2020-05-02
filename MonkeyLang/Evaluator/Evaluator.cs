@@ -25,10 +25,7 @@ namespace MonkeyLang
             AST result = Parser.ParseProgram(input);
             if (result.HasErrors)
             {
-                return new ErrorObject(
-                    result.Errors.Aggregate(
-                        string.Empty, 
-                        (acc, st) => $"{acc}{st.Message};"));
+                return new ErrorObject(result.Errors.Select(m => m.Message));
             }
 
             Environments.Push(new MonkeyEnvironment());
@@ -56,7 +53,7 @@ namespace MonkeyLang
             }
             catch (MonkeyEvaluatorException ex)
             {
-                return new ErrorObject(ex.Message);
+                return new ErrorObject(new[] { ex.Message });
             }
         }
 
