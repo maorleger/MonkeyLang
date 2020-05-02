@@ -21,6 +21,10 @@ namespace MonkeyLang
         public IObject Evaluate(string input)
         {
             AST result = Parser.ParseProgram(input);
+            if (result.HasErrors)
+            {
+                return new ErrorObject(result.Errors.Aggregate(string.Empty, (acc, st) => $"{acc}{st.Message};"));
+            }
             // TODO: what to do with errors?
 
             return Evaluate(result.Program);
@@ -28,18 +32,25 @@ namespace MonkeyLang
 
         public IObject Evaluate(INode node)
         {
-            return node switch
+            try
             {
-                Program program => EvaluateStatements(program.Statements, unwrapReturn: true),
-                ExpressionStatement exprStatement => Evaluate(exprStatement.Expression),
-                IntegerLiteral intLiteral => new IntegerObject(intLiteral.Value),
-                Boolean boolean => BooleanObject.FromNative(boolean.Value),
-                PrefixExpression prefixExpr => EvaluatePrefix(Evaluate(prefixExpr.Right), prefixExpr.Operator),
-                InfixExpression infixExpr => EvaluateInfix(Evaluate(infixExpr.Left), infixExpr.Operator, Evaluate(infixExpr.Right)),
-                IfExpression ifExpr => EvaluateConditional(Evaluate(ifExpr.Condition), ifExpr.Consequence, ifExpr.Alternative),
-                ReturnStatement returnStmt => new ReturnValue(Evaluate(returnStmt.ReturnValue)),
-                _ => NullObject.Null
-            };
+                return node switch
+                {
+                    Program program => EvaluateStatements(program.Statements, unwrapReturn: true),
+                    ExpressionStatement exprStatement => Evaluate(exprStatement.Expression),
+                    IntegerLiteral intLiteral => new IntegerObject(intLiteral.Value),
+                    Boolean boolean => BooleanObject.FromNative(boolean.Value),
+                    PrefixExpression prefixExpr => EvaluatePrefix(Evaluate(prefixExpr.Right), prefixExpr.Operator),
+                    InfixExpression infixExpr => EvaluateInfix(Evaluate(infixExpr.Left), infixExpr.Operator, Evaluate(infixExpr.Right)),
+                    IfExpression ifExpr => EvaluateConditional(Evaluate(ifExpr.Condition), ifExpr.Consequence, ifExpr.Alternative),
+                    ReturnStatement returnStmt => new ReturnValue(Evaluate(returnStmt.ReturnValue)),
+                    _ => NullObject.Null
+                };
+            }
+            catch (MonkeyEvaluatorException ex)
+            {
+                return new ErrorObject(ex.Message);
+            }
         }
 
         private IObject EvaluateInfix(IObject left, TokenType op, IObject right)
@@ -48,7 +59,7 @@ namespace MonkeyLang
             {
                 (IntegerObject li, IntegerObject ri) => EvaluateIntegerInfix(li, op, ri),
                 (BooleanObject lb, BooleanObject rb) => EvaluateBooleanInfix(lb, op, rb),
-                _ => NullObject.Null
+                _ => throw new MonkeyEvaluatorException($"type mismatch: {left.Type} {op.GetDescription()} {right.Type}")
             };
         }
 
@@ -64,7 +75,7 @@ namespace MonkeyLang
                 TokenType.GT => BooleanObject.FromNative(l.Value > r.Value),
                 TokenType.Eq => BooleanObject.FromNative(l.Value == r.Value),
                 TokenType.Not_Eq => BooleanObject.FromNative(l.Value != r.Value),
-                _ => NullObject.Null
+                _ => throw new MonkeyEvaluatorException($"unknown operator: {l.Type} {op.GetDescription()} {r.Type}")
             };
         }
 
@@ -74,7 +85,7 @@ namespace MonkeyLang
             {
                 TokenType.Eq => BooleanObject.FromNative(l.Value == r.Value),
                 TokenType.Not_Eq => BooleanObject.FromNative(l.Value != r.Value),
-                _ => NullObject.Null
+                _ => throw new MonkeyEvaluatorException($"unknown operator: {l.Type} {op.GetDescription()} {r.Type}")
             };
         }
 
@@ -84,7 +95,7 @@ namespace MonkeyLang
             {
                 TokenType.Bang => EvaluateUnaryNot(right),
                 TokenType.Minus => EvaluateUnaryMinus(right),
-                _ => NullObject.Null
+                _ => throw new MonkeyEvaluatorException($"unknown operator: {op.GetDescription()}{right.Type}")
             };
         }
 
@@ -118,7 +129,7 @@ namespace MonkeyLang
             if (right is IntegerObject i) {
                 return new IntegerObject(-i.Value);
             }
-            return NullObject.Null;
+            throw new MonkeyEvaluatorException($"unknown operator: -{right.Type}");
         }
 
         private IObject EvaluateUnaryNot(IObject right)
@@ -127,7 +138,7 @@ namespace MonkeyLang
             {
                 BooleanObject b => BooleanObject.FromNative(!b.Value),
                 NullObject _ => BooleanObject.True,
-                _ => BooleanObject.False
+                _ => throw new MonkeyEvaluatorException($"unknown operator: !{right.Type}")
             };
         }
 
@@ -142,6 +153,11 @@ namespace MonkeyLang
                 if (result is ReturnValue returnVal)
                 {
                     return unwrapReturn ? returnVal.Value : returnVal;
+                }
+
+                if (result is ErrorObject errorObj)
+                {
+                    return errorObj;
                 }
             }
 

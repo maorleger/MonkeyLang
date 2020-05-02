@@ -1,4 +1,6 @@
-﻿namespace MonkeyLang
+﻿using System.ComponentModel;
+
+namespace MonkeyLang
 {
     public enum TokenType
     {
@@ -8,24 +10,40 @@
         Ident,
         Int,
 
+        [Description("=")]
         Assign,
+        [Description("+")]
         Plus,
+        [Description("-")]
         Minus,
+        [Description("!")]
         Bang,
+        [Description("*")]
         Asterisk,
+        [Description("/")]
         Slash,
 
+        [Description("<")]
         LT,
+        [Description(">")]
         GT,
+        [Description("==")]
         Eq,
+        [Description("!=")]
         Not_Eq,
 
+        [Description(",")]
         Comma,
+        [Description(";")]
         Semicolon,
 
+        [Description("(")]
         LParen,
+        [Description(")")]
         RParen,
+        [Description("{")]
         LBrace,
+        [Description("}")]
         RBrace,
 
         Function,

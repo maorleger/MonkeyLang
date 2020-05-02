@@ -5,6 +5,7 @@
         Integer,
         Boolean,
         Return,
-        Null
+        Null,
+        Error
     }
 }

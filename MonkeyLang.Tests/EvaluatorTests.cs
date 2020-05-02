@@ -149,6 +149,64 @@ namespace MonkeyLang.Tests
                 }
             };
 
+        [Fact]
+        public void Evaluate_CanEvalParseErrors()
+        {
+            var actual = subject.Evaluate("let 5 x");
+            Assert.NotNull(actual);
+            var error = AssertAndCast<ErrorObject>(actual);
+            Assert.Equal("Expected an identifier, got Token [Type='Int', Literal='5'];", error.Message);
+        }
+
+        [Theory]
+        [MemberData(nameof(EvalErrorData))]
+        public void Evaluate_CanHandleErrors(string input, string expected)
+        {
+            var actual = subject.Evaluate(input);
+            Assert.NotNull(actual);
+            var error = AssertAndCast<ErrorObject>(actual);
+            Assert.Equal(expected, error.Message);
+        }
+
+        public static IEnumerable<object[]> EvalErrorData =>
+            new List<object[]>
+            {
+                new object[] {
+                    "5 + true;",
+                    "type mismatch: Integer + Boolean",
+                },
+                new object[]
+                {
+                    "5 + true; 5;",
+                    "type mismatch: Integer + Boolean",
+                },
+                new object[]
+                {
+                    "-true",
+                    "unknown operator: -Boolean",
+                },
+                new object[] {
+                    "true + false;",
+                    "unknown operator: Boolean + Boolean",
+                },
+                new object[]
+                {
+                    "5; true + false; 5",
+                    "unknown operator: Boolean + Boolean",
+                },
+                new object[]
+                {
+                    "if (10 > 1) { true + false; }",
+                    "unknown operator: Boolean + Boolean",
+                },
+                new object[]
+                {
+                    "if (10 > 1) { if (10 > 1) { return true + false } } return 1; }",
+                    "unknown operator: Boolean + Boolean",
+                }
+            };
+
+
         private T AssertAndCast<T>(object obj) where T : class
         {
             Assert.IsType<T>(obj);
