@@ -6,6 +6,7 @@
         Boolean,
         Return,
         Null,
-        Error
+        Error,
+        Function
     }
 }

@@ -11,14 +11,17 @@ namespace MonkeyLang
     public class Evaluator
     {
         [ImportingConstructor]
-        public Evaluator([Import] Parser parser)
+        public Evaluator([Import] Parser parser, [Import] IEnvironment initialEnvironment)
         {
             Parser = parser;
-            Environments = new Stack<MonkeyEnvironment>();
+            Environments = new Stack<IEnvironment>();
+            Environments.Push(initialEnvironment);
         }
 
         private Parser Parser { get; }
-        private Stack<MonkeyEnvironment> Environments { get; }
+        private Stack<IEnvironment> Environments { get; }
+
+        private IEnvironment CurrentEnvironment => Environments.Peek();
 
         public IObject Evaluate(string input)
         {
@@ -28,7 +31,6 @@ namespace MonkeyLang
                 return new ErrorObject(result.Errors.Select(m => m.Message));
             }
 
-            Environments.Push(new MonkeyEnvironment());
             return Evaluate(result.Program);
         }
 
@@ -48,6 +50,9 @@ namespace MonkeyLang
                     ReturnStatement returnStmt => new ReturnValue(Evaluate(returnStmt.ReturnValue)),
                     LetStatement letStmt => EvaluateLet(letStmt.Name, Evaluate(letStmt.Value)),
                     Identifier ident => EvaluateIdentifier(ident),
+                    FunctionLiteral fnLiteral => new FunctionObject(fnLiteral.Parameters, fnLiteral.Body, CurrentEnvironment),
+                    CallExpression callExpr => EvaluateCallExpression(callExpr.Function, callExpr.Arguments),
+                    BlockStatement blockStmt => EvaluateStatements(blockStmt.Statements, unwrapReturn: true),
                     _ => NullObject.Null
                 };
             }
@@ -59,8 +64,7 @@ namespace MonkeyLang
 
         private IObject EvaluateIdentifier(Identifier ident)
         {
-            //TODO: should I use Value or implement equality for an identifier?
-            var result = Environments.Peek().Get(ident.Value);
+            var result = CurrentEnvironment.Get(ident.Value);
 
             if (result == null)
             {
@@ -72,7 +76,7 @@ namespace MonkeyLang
 
         private IObject EvaluateLet(Identifier name, IObject value)
         {
-            Environments.Peek().Set(name.Value, value);
+            CurrentEnvironment.Set(name.Value, value);
             return value;
         }
 
@@ -163,6 +167,28 @@ namespace MonkeyLang
                 NullObject _ => BooleanObject.True,
                 _ => BooleanObject.False
             };
+        }
+
+        private IObject EvaluateCallExpression(IExpression fn, IImmutableList<IExpression> arguments)
+        {
+            IObject value = Evaluate(fn);
+
+            if (value is FunctionObject fnObject)
+            {
+                var boundEnvironment = fnObject.Environment.Extend();
+                var bindings = fnObject.Parameters.Zip(arguments);
+                foreach ((Identifier First, IExpression Second) in bindings)
+                {
+                    boundEnvironment.Set(First.Value, Evaluate(Second));
+                }
+
+                Environments.Push(boundEnvironment);
+                IObject result = Evaluate(fnObject.Body);
+                Environments.Pop();
+
+                return result;
+            }
+            throw new MonkeyEvaluatorException("NO TEST FOR THIS YET");
         }
 
         private IObject EvaluateStatements(IImmutableList<IStatement> statements, bool unwrapReturn = false)

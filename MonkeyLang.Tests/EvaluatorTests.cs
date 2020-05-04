@@ -13,7 +13,7 @@ namespace MonkeyLang.Tests
     {
         public EvaluatorTests()
         {
-            subject = new Evaluator(new Parser(new Lexer()));
+            subject = new Evaluator(new Parser(new Lexer()), new MonkeyEnvironment());
         }
 
         private readonly Evaluator subject;
@@ -154,7 +154,7 @@ namespace MonkeyLang.Tests
             var actual = subject.Evaluate("let 5 x");
             Assert.NotNull(actual);
             var error = AssertAndCast<ErrorObject>(actual);
-            Assert.Contains("Expected an identifier, got Token [Type='Int', Literal='5'];", error.Messages);
+            Assert.Contains("Expected an identifier, got Token [Type='Int', Literal='5']", error.Messages);
         }
 
         [Theory]
@@ -228,6 +228,54 @@ namespace MonkeyLang.Tests
                 new object[] { "let a = 5 + 5; let b = a; let c = a + b + 5; c;", 25 }
             };
 
+        [Fact]
+        public void Evaluate_CanEvaluateFunctionObject()
+        {
+            var actual = subject.Evaluate("fn(x) { x + 2; }");
+            var fn = AssertAndCast<FunctionObject>(actual);
+            Assert.Equal(1, fn.Parameters.Count);
+            Assert.Equal("x", fn.Parameters[0].StringValue);
+            Assert.Equal("(x + 2)", fn.Body.StringValue);
+        }
+
+        [Theory]
+        [MemberData(nameof(FunctionData))]
+        public void Evaluate_CanEvaluateFunction(string input, int expected)
+        {
+            var actual = subject.Evaluate(input);
+            Assert.NotNull(actual);
+            var intObj = AssertAndCast<IntegerObject>(actual);
+            Assert.Equal(expected, intObj.Value);
+        }
+
+        public static IEnumerable<object[]> FunctionData =>
+            new List<object[]>
+            {
+                new object[] {"let identity = fn(x) { x; }; identity(5);", 5},
+                new object[] {"let identity = fn(x) { return x; }; identity(5);", 5},
+                new object[] {"let double = fn(x) { x * 2; }; double(5);", 10},
+                new object[] {"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
+                new object[] {"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
+                new object[] {"fn(x) { x; }(5)", 5},
+            };
+
+        [Fact]
+        public void Evaluate_CanEvaluateClosures()
+        {
+            string input = @"
+let newAdder = fn(x) { 
+    fn(y) { x + y };
+};
+
+let addTwo = newAdder(2);
+let addThree = newAdder(3);
+addTwo(3);
+";
+
+            var actual = subject.Evaluate(input);
+            var intObj = AssertAndCast<IntegerObject>(actual);
+            Assert.Equal(5, intObj.Value);
+        }
 
         private T AssertAndCast<T>(object obj) where T : class
         {
