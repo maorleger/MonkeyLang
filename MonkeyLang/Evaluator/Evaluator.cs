@@ -11,17 +11,17 @@ namespace MonkeyLang
     public class Evaluator
     {
         [ImportingConstructor]
-        public Evaluator([Import] Parser parser, [Import] IEnvironment initialEnvironment)
+        public Evaluator([Import] Parser parser)
         {
             Parser = parser;
-            Environments = new Stack<IEnvironment>();
-            Environments.Push(initialEnvironment);
+            Environments = new Stack<Environment>();
+            Environments.Push(new Environment());
         }
 
         private Parser Parser { get; }
-        private Stack<IEnvironment> Environments { get; }
+        private Stack<Environment> Environments { get; }
 
-        private IEnvironment CurrentEnvironment => Environments.Peek();
+        private Environment CurrentEnvironment => Environments.Peek();
 
         public IObject Evaluate(string input)
         {
@@ -56,7 +56,7 @@ namespace MonkeyLang
                     _ => NullObject.Null
                 };
             }
-            catch (MonkeyEvaluatorException ex)
+            catch (EvaluatorException ex)
             {
                 return new ErrorObject(new[] { ex.Message });
             }
@@ -68,7 +68,7 @@ namespace MonkeyLang
 
             if (result == null)
             {
-                throw new MonkeyEvaluatorException($"identifier not found: {ident.StringValue}");
+                throw new EvaluatorException($"identifier not found: {ident.StringValue}");
             }
 
             return result;
@@ -86,7 +86,7 @@ namespace MonkeyLang
             {
                 (IntegerObject li, IntegerObject ri) => EvaluateIntegerInfix(li, op, ri),
                 (BooleanObject lb, BooleanObject rb) => EvaluateBooleanInfix(lb, op, rb),
-                _ => throw new MonkeyEvaluatorException($"type mismatch: {left.Type} {op.GetDescription()} {right.Type}")
+                _ => throw new EvaluatorException($"type mismatch: {left.Type} {op.GetDescription()} {right.Type}")
             };
         }
 
@@ -102,7 +102,7 @@ namespace MonkeyLang
                 TokenType.GT => BooleanObject.FromNative(l.Value > r.Value),
                 TokenType.Eq => BooleanObject.FromNative(l.Value == r.Value),
                 TokenType.Not_Eq => BooleanObject.FromNative(l.Value != r.Value),
-                _ => throw new MonkeyEvaluatorException($"unknown operator: {l.Type} {op.GetDescription()} {r.Type}")
+                _ => throw new EvaluatorException($"unknown operator: {l.Type} {op.GetDescription()} {r.Type}")
             };
         }
 
@@ -112,7 +112,7 @@ namespace MonkeyLang
             {
                 TokenType.Eq => BooleanObject.FromNative(l.Value == r.Value),
                 TokenType.Not_Eq => BooleanObject.FromNative(l.Value != r.Value),
-                _ => throw new MonkeyEvaluatorException($"unknown operator: {l.Type} {op.GetDescription()} {r.Type}")
+                _ => throw new EvaluatorException($"unknown operator: {l.Type} {op.GetDescription()} {r.Type}")
             };
         }
 
@@ -122,7 +122,7 @@ namespace MonkeyLang
             {
                 TokenType.Bang => EvaluateUnaryNot(right),
                 TokenType.Minus => EvaluateUnaryMinus(right),
-                _ => throw new MonkeyEvaluatorException($"unknown operator: {op.GetDescription()}{right.Type}")
+                _ => throw new EvaluatorException($"unknown operator: {op.GetDescription()}{right.Type}")
             };
         }
 
@@ -156,7 +156,7 @@ namespace MonkeyLang
             if (right is IntegerObject i) {
                 return new IntegerObject(-i.Value);
             }
-            throw new MonkeyEvaluatorException($"unknown operator: -{right.Type}");
+            throw new EvaluatorException($"unknown operator: -{right.Type}");
         }
 
         private IObject EvaluateUnaryNot(IObject right)
@@ -188,7 +188,7 @@ namespace MonkeyLang
 
                 return result;
             }
-            throw new MonkeyEvaluatorException("NO TEST FOR THIS YET");
+            throw new EvaluatorException("NO TEST FOR THIS YET");
         }
 
         private IObject EvaluateStatements(IImmutableList<IStatement> statements, bool unwrapReturn = false)

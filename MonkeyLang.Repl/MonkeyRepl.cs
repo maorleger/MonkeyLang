@@ -19,7 +19,7 @@ namespace MonkeyLang.Repl
 
         public void Start()
         {
-            Console.WriteLine("Hello {0}! This is the Monkey programming language!", Environment.UserName);
+            Console.WriteLine("Hello {0}! This is the Monkey programming language!", System.Environment.UserName);
             Console.WriteLine("Feel free to type in commands");
 
             string line;

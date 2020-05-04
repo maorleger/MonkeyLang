@@ -15,6 +15,6 @@ namespace MonkeyLang
 
         public ObjectType Type => ObjectType.Error;
 
-        public string Inspect() => $"ERRORS:{Environment.NewLine}{string.Join(Environment.NewLine, Messages)}";
+        public string Inspect() => $"ERRORS:{System.Environment.NewLine}{string.Join(System.Environment.NewLine, Messages)}";
     }
 }

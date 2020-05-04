@@ -13,7 +13,7 @@ namespace MonkeyLang.Tests
     {
         public EvaluatorTests()
         {
-            subject = new Evaluator(new Parser(new Lexer()), new MonkeyEnvironment());
+            subject = new Evaluator(new Parser(new Lexer()));
         }
 
         private readonly Evaluator subject;

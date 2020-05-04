@@ -11,7 +11,7 @@ namespace MonkeyLang.Tests
         public void Get_WhenValuePresent_CanReturnValue()
         {
             IObject obj = new IntegerObject(5);
-            MonkeyEnvironment subject = new MonkeyEnvironment();
+            Environment subject = new Environment();
             subject.Set("a", obj);
             Assert.Equal(obj, subject.Get("a"));
         }
@@ -20,10 +20,10 @@ namespace MonkeyLang.Tests
         public void Get_WhenValueIsNotPresent_SearchesParents()
         {
             IObject obj = new IntegerObject(5);
-            MonkeyEnvironment subject = new MonkeyEnvironment();
+            Environment subject = new Environment();
             subject.Set("a", obj);
-            subject = new MonkeyEnvironment(subject);
-            subject = new MonkeyEnvironment(subject);
+            subject = new Environment(subject);
+            subject = new Environment(subject);
             Assert.Equal(obj, subject.Get("a"));
         }
 
@@ -31,10 +31,10 @@ namespace MonkeyLang.Tests
         public void Get_WhenShadowingOuterValue_ReturnsCorrectValue()
         {
             IObject obj = new IntegerObject(10);
-            MonkeyEnvironment subject = new MonkeyEnvironment();
+            Environment subject = new Environment();
             subject.Set("a", new IntegerObject(5));
-            subject = new MonkeyEnvironment(subject);
-            subject = new MonkeyEnvironment(subject);
+            subject = new Environment(subject);
+            subject = new Environment(subject);
             subject.Set("a", obj);
             Assert.Equal(obj, subject.Get("a"));
         }
@@ -42,9 +42,9 @@ namespace MonkeyLang.Tests
         [Fact]
         public void Get_WhenValueNotPresent_ReturnsNull()
         {
-            MonkeyEnvironment subject = new MonkeyEnvironment();
-            subject = new MonkeyEnvironment(subject);
-            subject = new MonkeyEnvironment(subject);
+            Environment subject = new Environment();
+            subject = new Environment(subject);
+            subject = new Environment(subject);
             Assert.Null(subject.Get("a"));
         }
     }

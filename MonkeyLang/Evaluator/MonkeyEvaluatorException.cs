@@ -4,21 +4,21 @@ using System.Runtime.Serialization;
 namespace MonkeyLang
 {
     [Serializable]
-    internal class MonkeyEvaluatorException : Exception
+    internal class EvaluatorException : Exception
     {
-        public MonkeyEvaluatorException()
+        public EvaluatorException()
         {
         }
 
-        public MonkeyEvaluatorException(string? message) : base(message)
+        public EvaluatorException(string? message) : base(message)
         {
         }
 
-        public MonkeyEvaluatorException(string? message, Exception? innerException) : base(message, innerException)
+        public EvaluatorException(string? message, Exception? innerException) : base(message, innerException)
         {
         }
 
-        protected MonkeyEvaluatorException(SerializationInfo info, StreamingContext context) : base(info, context)
+        protected EvaluatorException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
     }

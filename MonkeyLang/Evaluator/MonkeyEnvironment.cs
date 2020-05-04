@@ -6,26 +6,18 @@ using System.Text;
 
 namespace MonkeyLang
 {
-    public interface IEnvironment
+    [Export(typeof(Environment))]
+    public class Environment
     {
-        IObject? Get(string name);
-        IObject Set(string name, IObject value);
-        IEnvironment Extend();
-        string Inspect();
-    }
+        public Environment() : this(null) { }
 
-    [Export(typeof(IEnvironment))]
-    public class MonkeyEnvironment : IEnvironment
-    {
-        public MonkeyEnvironment() : this(null) { }
-
-        public MonkeyEnvironment(IEnvironment? parent)
+        public Environment(Environment? parent)
         {
             this.Parent = parent;
             this.Store = new Dictionary<string, IObject>();
         }
 
-        private IEnvironment? Parent { get; }
+        private Environment? Parent { get; }
         private Dictionary<string, IObject> Store { get; }
 
         public IObject Set(string name, IObject value)
@@ -41,9 +33,9 @@ namespace MonkeyLang
             return value;
         }
 
-        public IEnvironment Extend()
+        public Environment Extend()
         {
-            var extendedEnv = new MonkeyEnvironment(this);
+            var extendedEnv = new Environment(this);
             foreach (var boundItem in Store)
             {
                 extendedEnv.Set(boundItem.Key, boundItem.Value);
@@ -55,7 +47,7 @@ namespace MonkeyLang
         {
             StringBuilder sb = new StringBuilder("Environment: ");
             sb.AppendLine();
-            sb.AppendJoin(Environment.NewLine, Store.Select(kv => $"[{kv.Key}={kv.Value.Inspect()}]"));
+            sb.AppendJoin(System.Environment.NewLine, Store.Select(kv => $"[{kv.Key}={kv.Value.Inspect()}]"));
             sb.AppendLine();
             if (Parent != null)
             {
