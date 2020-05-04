@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 
 namespace MonkeyLang
@@ -14,14 +15,14 @@ namespace MonkeyLang
         public Evaluator([Import] Parser parser)
         {
             Parser = parser;
-            Environments = new Stack<Environment>();
-            Environments.Push(new Environment());
+            Environments = new Stack<RuntimeEnvironment>();
+            Environments.Push(new RuntimeEnvironment());
         }
 
         private Parser Parser { get; }
-        private Stack<Environment> Environments { get; }
+        private Stack<RuntimeEnvironment> Environments { get; }
 
-        private Environment CurrentEnvironment => Environments.Peek();
+        private RuntimeEnvironment CurrentEnvironment => Environments.Peek();
 
         public IObject Evaluate(string input)
         {
@@ -161,12 +162,7 @@ namespace MonkeyLang
 
         private IObject EvaluateUnaryNot(IObject right)
         {
-            return right switch
-            {
-                BooleanObject b => BooleanObject.FromNative(!b.Value),
-                NullObject _ => BooleanObject.True,
-                _ => BooleanObject.False
-            };
+            return IsTruthy(right) ? BooleanObject.False : BooleanObject.True;
         }
 
         private IObject EvaluateCallExpression(IExpression fn, IImmutableList<IExpression> arguments)
@@ -175,20 +171,20 @@ namespace MonkeyLang
 
             if (value is FunctionObject fnObject)
             {
-                var boundEnvironment = fnObject.Environment.Extend();
-                var bindings = fnObject.Parameters.Zip(arguments);
-                foreach ((Identifier First, IExpression Second) in bindings)
+                Environments.Push(fnObject.Environment.Extend());
+
+                var bindings = fnObject.Parameters.Zip(arguments.Select(Evaluate));
+                foreach ((Identifier parameter, IObject argument) in bindings)
                 {
-                    boundEnvironment.Set(First.Value, Evaluate(Second));
+                    CurrentEnvironment.Set(parameter.Value, argument);
                 }
 
-                Environments.Push(boundEnvironment);
                 IObject result = Evaluate(fnObject.Body);
-                Environments.Pop();
 
+                Environments.Pop();
                 return result;
             }
-            throw new EvaluatorException("NO TEST FOR THIS YET");
+            throw new EvaluatorException($"undefined local variable or method {fn.StringValue}");
         }
 
         private IObject EvaluateStatements(IImmutableList<IStatement> statements, bool unwrapReturn = false)

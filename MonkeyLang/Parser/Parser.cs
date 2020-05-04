@@ -74,7 +74,7 @@ namespace MonkeyLang
         public AST ParseProgram(string input)
         {
             var statements = new List<IStatement>();
-            var errors = new List<MonkeyParseException>();
+            var errors = new List<ParseException>();
 
             this.Lexer.Tokenize(input);
             AdvanceTokens();
@@ -87,7 +87,7 @@ namespace MonkeyLang
                     statements.Add(ParseStatement());
             ;
                 }
-                catch (MonkeyParseException e)
+                catch (ParseException e)
                 {
                     errors.Add(e); // only add one parse error per statement
                     AdvanceToSemicolon();
@@ -135,14 +135,14 @@ namespace MonkeyLang
 
             if (!ExpectPeek(TokenType.Ident))
             {
-                throw new MonkeyParseException($"Expected an identifier, got {PeekToken}");
+                throw new ParseException($"Expected an identifier, got {PeekToken}");
             }
 
             Identifier name = new Identifier(CurrentToken, CurrentToken.Literal);
 
             if (!ExpectPeek(TokenType.Assign))
             {
-                throw new MonkeyParseException($"Expected an assignment, got {PeekToken}");
+                throw new ParseException($"Expected an assignment, got {PeekToken}");
             }
 
             AdvanceTokens();
@@ -179,7 +179,7 @@ namespace MonkeyLang
             PrefixParseFns.TryGetValue(CurrentToken.Type, out var prefix);
             if (prefix == null)
             {
-                throw new MonkeyParseException($"no prefix parse function for {CurrentToken}");
+                throw new ParseException($"no prefix parse function for {CurrentToken}");
             }
             var leftExpression = prefix();
 
@@ -329,7 +329,7 @@ namespace MonkeyLang
 
             if (!ExpectPeek(TokenType.RParen))
             {
-                throw new MonkeyParseException($"Expected right parens, got {PeekToken.Type}");
+                throw new ParseException($"Expected right parens, got {PeekToken.Type}");
             }
 
             Trace.WriteLine("END GROUP");
@@ -346,14 +346,14 @@ namespace MonkeyLang
 
             if (!ExpectPeek(TokenType.LParen))
             {
-                throw new MonkeyParseException($"Expected left parens, got {PeekToken.Type}");
+                throw new ParseException($"Expected left parens, got {PeekToken.Type}");
             }
 
             var condition = ParseExpression(Precedence.Lowest);
 
             if (!ExpectPeek(TokenType.LBrace))
             {
-                throw new MonkeyParseException($"Expected left brace, got {PeekToken.Type}");
+                throw new ParseException($"Expected left brace, got {PeekToken.Type}");
             }
 
             var consequence = ParseBlockStatement();
@@ -365,7 +365,7 @@ namespace MonkeyLang
 
                 if (!ExpectPeek(TokenType.LBrace))
                 {
-                    throw new MonkeyParseException($"Expected left brace, got {PeekToken.Type}");
+                    throw new ParseException($"Expected left brace, got {PeekToken.Type}");
                 }
 
                 alternative = ParseBlockStatement();

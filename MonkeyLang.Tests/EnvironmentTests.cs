@@ -5,13 +5,13 @@ using Xunit;
 
 namespace MonkeyLang.Tests
 {
-    public class MonkeyEnvironmentTests
+    public class EnvironmentTests
     {
         [Fact]
         public void Get_WhenValuePresent_CanReturnValue()
         {
             IObject obj = new IntegerObject(5);
-            Environment subject = new Environment();
+            RuntimeEnvironment subject = new RuntimeEnvironment();
             subject.Set("a", obj);
             Assert.Equal(obj, subject.Get("a"));
         }
@@ -20,10 +20,10 @@ namespace MonkeyLang.Tests
         public void Get_WhenValueIsNotPresent_SearchesParents()
         {
             IObject obj = new IntegerObject(5);
-            Environment subject = new Environment();
+            RuntimeEnvironment subject = new RuntimeEnvironment();
             subject.Set("a", obj);
-            subject = new Environment(subject);
-            subject = new Environment(subject);
+            subject = subject.Extend();
+            subject = subject.Extend();
             Assert.Equal(obj, subject.Get("a"));
         }
 
@@ -31,10 +31,10 @@ namespace MonkeyLang.Tests
         public void Get_WhenShadowingOuterValue_ReturnsCorrectValue()
         {
             IObject obj = new IntegerObject(10);
-            Environment subject = new Environment();
+            RuntimeEnvironment subject = new RuntimeEnvironment();
             subject.Set("a", new IntegerObject(5));
-            subject = new Environment(subject);
-            subject = new Environment(subject);
+            subject = subject.Extend();
+            subject = subject.Extend();
             subject.Set("a", obj);
             Assert.Equal(obj, subject.Get("a"));
         }
@@ -42,9 +42,9 @@ namespace MonkeyLang.Tests
         [Fact]
         public void Get_WhenValueNotPresent_ReturnsNull()
         {
-            Environment subject = new Environment();
-            subject = new Environment(subject);
-            subject = new Environment(subject);
+            RuntimeEnvironment subject = new RuntimeEnvironment();
+            subject = subject.Extend();
+            subject = subject.Extend();
             Assert.Null(subject.Get("a"));
         }
     }

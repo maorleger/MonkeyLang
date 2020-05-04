@@ -8,14 +8,14 @@ namespace MonkeyLang
 {
     public class AST
     {
-        public AST(Program program, IEnumerable<MonkeyParseException> errors)
+        public AST(Program program, IEnumerable<ParseException> errors)
         {
             this.Program = program;
             this.Errors = errors.ToImmutableList();
         }
 
         public Program Program { get; }
-        public IImmutableList<MonkeyParseException> Errors { get; }
+        public IImmutableList<ParseException> Errors { get; }
         public bool HasErrors => Errors.Count > 0;
     }
 }

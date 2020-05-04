@@ -8,16 +8,16 @@ namespace MonkeyLang
 {
     public class FunctionObject : IObject
     {
-        public FunctionObject(IEnumerable<Identifier> parameters, BlockStatement body, Environment environment)
+        public FunctionObject(IEnumerable<Identifier> parameters, BlockStatement body, RuntimeEnvironment environment)
         {
             Parameters = parameters.ToImmutableList();
             Body = body;
-            Environment = new Environment(environment);
+            Environment = environment.Extend();
         }
 
         public IImmutableList<Identifier> Parameters { get; }
         public BlockStatement Body { get; }
-        public Environment Environment { get; }
+        public RuntimeEnvironment Environment { get; }
 
         public ObjectType Type => ObjectType.Function;
 

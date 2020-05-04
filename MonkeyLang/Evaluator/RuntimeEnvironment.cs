@@ -6,18 +6,17 @@ using System.Text;
 
 namespace MonkeyLang
 {
-    [Export(typeof(Environment))]
-    public class Environment
+    public class RuntimeEnvironment
     {
-        public Environment() : this(null) { }
+        public RuntimeEnvironment() : this(null) { }
 
-        public Environment(Environment? parent)
+        private RuntimeEnvironment(RuntimeEnvironment? parent)
         {
             this.Parent = parent;
             this.Store = new Dictionary<string, IObject>();
         }
 
-        private Environment? Parent { get; }
+        private RuntimeEnvironment? Parent { get; }
         private Dictionary<string, IObject> Store { get; }
 
         public IObject Set(string name, IObject value)
@@ -33,15 +32,7 @@ namespace MonkeyLang
             return value;
         }
 
-        public Environment Extend()
-        {
-            var extendedEnv = new Environment(this);
-            foreach (var boundItem in Store)
-            {
-                extendedEnv.Set(boundItem.Key, boundItem.Value);
-            }
-            return extendedEnv;
-        }
+        public RuntimeEnvironment Extend() => new RuntimeEnvironment(this);
 
         public string Inspect()
         {

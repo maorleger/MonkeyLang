@@ -8,14 +8,12 @@ namespace MonkeyLang.Repl
     public class MonkeyRepl
     {
         [ImportingConstructor]
-        public MonkeyRepl([Import] Evaluator evaluator, [Import] Parser parser)
+        public MonkeyRepl([Import] Evaluator evaluator)
         {
             Evaluator = evaluator;
-            Parser = parser; //TODO: get rid of this when evaluator can display errors
         }
 
         public Evaluator Evaluator { get; }
-        public Parser Parser { get; }
 
         public void Start()
         {
@@ -26,17 +24,6 @@ namespace MonkeyLang.Repl
             while (!string.IsNullOrWhiteSpace(line = Console.ReadLine()))
             {
                 Console.WriteLine(Evaluator.Evaluate(line).Inspect());
-            }
-        }
-
-        private void PrintParserErrors(IImmutableList<MonkeyParseException> errors)
-        {
-            Console.WriteLine("Woops! We ran into some monkey business here!");
-            Console.WriteLine("Parser errors: ");
-
-            foreach (var error in errors)
-            {
-                Console.WriteLine(error.Message);
             }
         }
     }
