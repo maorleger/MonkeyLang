@@ -105,11 +105,19 @@ namespace MonkeyLang
 
         static readonly Parser<char, Token> Identifier = OneOf(Integer, Name);
 
+        // String
+        static readonly Parser<char, char> Quote = Char('"');
+        static readonly Parser<char, Token> String = Tok(
+            Token(c => c != '"')
+            .ManyString()
+            .Between(Quote))
+            .Select(t => new Token(TokenType.String, t));
+
         // Illegal
         static readonly Parser<char, Token> Illegal = Tok(Any).Select(t => new Token(TokenType.Illegal, t.ToString()));
 
         // Top level parser
         static readonly Parser<char, IEnumerable<Token>> Monkey =
-            OneOf(Symbol, Keyword, Identifier, Illegal).Many();
+            OneOf(Symbol, String, Keyword, Identifier, Illegal).Many();
     }
 }

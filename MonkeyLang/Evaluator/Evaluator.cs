@@ -44,6 +44,7 @@ namespace MonkeyLang
                     Program program => EvaluateStatements(program.Statements, unwrapReturn: true),
                     ExpressionStatement exprStatement => Evaluate(exprStatement.Expression),
                     IntegerLiteral intLiteral => new IntegerObject(intLiteral.Value),
+                    StringLiteral strLiteral => new StringObject(strLiteral.Value),
                     Boolean boolean => BooleanObject.FromNative(boolean.Value),
                     PrefixExpression prefixExpr => EvaluatePrefix(Evaluate(prefixExpr.Right), prefixExpr.Operator),
                     InfixExpression infixExpr => EvaluateInfix(Evaluate(infixExpr.Left), infixExpr.Operator, Evaluate(infixExpr.Right)),
@@ -87,6 +88,7 @@ namespace MonkeyLang
             {
                 (IntegerObject li, IntegerObject ri) => EvaluateIntegerInfix(li, op, ri),
                 (BooleanObject lb, BooleanObject rb) => EvaluateBooleanInfix(lb, op, rb),
+                (StringObject ls, StringObject rs) => EvaluateStringInfix(ls, op, rs),
                 _ => throw new EvaluatorException($"type mismatch: {left.Type} {op.GetDescription()} {right.Type}")
             };
         }
@@ -115,6 +117,16 @@ namespace MonkeyLang
                 TokenType.Not_Eq => BooleanObject.FromNative(l.Value != r.Value),
                 _ => throw new EvaluatorException($"unknown operator: {l.Type} {op.GetDescription()} {r.Type}")
             };
+        }
+
+        private IObject EvaluateStringInfix(StringObject l, TokenType op, StringObject r)
+        {
+            if (op == TokenType.Plus)
+            {
+                return new StringObject(l.Value + r.Value);
+            }
+
+            throw new EvaluatorException($"unknown operator: {l.Type} {op.GetDescription()} {r.Type}");
         }
 
         private IObject EvaluatePrefix(IObject right, TokenType op)

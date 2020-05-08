@@ -7,6 +7,7 @@
         Return,
         Null,
         Error,
-        Function
+        Function,
+        String
     }
 }

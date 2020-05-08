@@ -47,6 +47,24 @@ namespace MonkeyLang.Tests
             };
 
         [Theory]
+        [MemberData(nameof(StringData))]
+        public void Evaluate_CanEvalStringExpressions(string input, string expected)
+        {
+            var actual = subject.Evaluate(input);
+            Assert.NotNull(actual);
+            var stringResult = AssertAndCast<StringObject>(actual);
+            Assert.Equal(expected, stringResult.Value);
+        }
+
+        public static IEnumerable<object[]> StringData =>
+            new List<object[]>
+            {
+                new object[] {"\"foo bar\"", "foo bar"},
+                new object[] {"\"foo\" + \"bar\"", "foobar"}
+            };
+
+
+        [Theory]
         [MemberData(nameof(BooleanData))]
         public void Evaluate_CanEvalBooleanExpressions(string input, bool expected)
         {

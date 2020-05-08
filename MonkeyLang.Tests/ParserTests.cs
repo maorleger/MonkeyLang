@@ -327,6 +327,21 @@ if (x < y) { x } else { y }
                 new object[] { "!(true == true)", "(!(true == true))" },
             };
 
+        [Fact]
+        public void Parser_CanParseStringLitrals()
+        {
+            var input = @"""hello world"";";
+
+            AST result = subject.ParseProgram(input);
+
+            Assert.Empty(result.Errors);
+            Assert.Equal(1, result.Program.Statements.Count);
+            var expr = AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
+            var stringResult = AssertAndCast<StringLiteral>(expr.Expression);
+
+            Assert.Equal("hello world", stringResult.Value);
+        }
+
         private T AssertAndCast<T>(object obj) where T : class
         {
             Assert.IsType<T>(obj);

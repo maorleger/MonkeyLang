@@ -52,6 +52,7 @@ namespace MonkeyLang
         False,
         If,
         Else,
-        Return
+        Return,
+        String
     }
 }

@@ -66,6 +66,8 @@ if (5 < 10) {
 }
 10 == 10;
 10 != 9;
+""foobar"";
+""foo bar""
             ");
 
             var expected = new List<Token>()
@@ -143,6 +145,9 @@ if (5 < 10) {
                 new Token(TokenType.Not_Eq, "!="),
                 new Token(TokenType.Int, "9"),
                 new Token(TokenType.Semicolon, ";"),
+                new Token(TokenType.String, "foobar"),
+                new Token(TokenType.Semicolon, ";"),
+                new Token(TokenType.String, "foo bar"),
                 new Token(TokenType.EOF, "")
             };
 

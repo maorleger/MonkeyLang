@@ -21,6 +21,7 @@ namespace MonkeyLang
                 { TokenType.True, () => new Boolean(CurrentToken, true) },
                 { TokenType.False, () => new Boolean(CurrentToken, false) },
                 { TokenType.Int, () => new IntegerLiteral(CurrentToken, int.Parse(CurrentToken.Literal)) },
+                { TokenType.String, () => new StringLiteral(CurrentToken, CurrentToken.Literal) },
                 { TokenType.Bang, ParsePrefixExpression },
                 { TokenType.Minus, ParsePrefixExpression },
                 { TokenType.LParen, ParseGroupedExpression },
