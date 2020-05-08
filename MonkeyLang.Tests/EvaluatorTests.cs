@@ -2,6 +2,7 @@
 using Pidgin;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -33,17 +34,17 @@ namespace MonkeyLang.Tests
             {
                 new object[] { "5", 5 },
                 new object[] { "10", 10 },
-                new object[] {"5 + 5 + 5 + 5 - 10", 10},
-                new object[] {"2 * 2 * 2 * 2 * 2", 32},
-                new object[] {"-50 + 100 + -50", 0},
-                new object[] {"5 * 2 + 10", 20},
-                new object[] {"5 + 2 * 10", 25},
-                new object[] {"20 + 2 * -10", 0},
-                new object[] {"50 / 2 * 2 + 10", 60},
-                new object[] {"2 * (5 + 10)", 30},
-                new object[] {"3 * 3 * 3 + 10", 37},
-                new object[] {"3 * (3 * 3) + 10", 37},
-                new object[] {"(5 + 10 * 2 + 15 / 3) * 2 + -10", 50}
+                new object[] { "5 + 5 + 5 + 5 - 10", 10 },
+                new object[] { "2 * 2 * 2 * 2 * 2", 32 },
+                new object[] { "-50 + 100 + -50", 0 },
+                new object[] { "5 * 2 + 10", 20 },
+                new object[] { "5 + 2 * 10", 25 },
+                new object[] { "20 + 2 * -10", 0 },
+                new object[] { "50 / 2 * 2 + 10", 60 },
+                new object[] { "2 * (5 + 10)", 30 },
+                new object[] { "3 * 3 * 3 + 10", 37 },
+                new object[] { "3 * (3 * 3) + 10", 37 },
+                new object[] { "(5 + 10 * 2 + 15 / 3) * 2 + -10", 50 }
             };
 
         [Theory]
@@ -59,10 +60,38 @@ namespace MonkeyLang.Tests
         public static IEnumerable<object[]> StringData =>
             new List<object[]>
             {
-                new object[] {"\"foo bar\"", "foo bar"},
-                new object[] {"\"foo\" + \"bar\"", "foobar"}
+                new object[] { "\"foo bar\"", "foo bar" },
+                new object[] { "\"foo\" + \"bar\"", "foobar" }
             };
 
+        [Theory]
+        [MemberData(nameof(BuiltInFunctionData))]
+        public void Evaluate_CanEvalBuiltInFunctions(string input, IObject expected)
+        {
+            var actual = subject.Evaluate(input);
+            Assert.NotNull(actual);
+
+            if (expected is ErrorObject expError)
+            {
+                var errResult = AssertAndCast<ErrorObject>(actual);
+                Assert.Equal(1, errResult.Messages.Count);
+                Assert.Equal(expError.Messages[0], errResult.Messages[0]);
+            }
+            else
+            {
+                Assert.Equal(expected, actual);
+            }
+        }
+
+        public static IEnumerable<object[]> BuiltInFunctionData =>
+            new List<object[]>
+            {
+                new object[] { "len(\"\")", new IntegerObject(0)},
+                new object[] { "len(\"four\")", new IntegerObject(4)},
+                new object[] { "len(\"hello world\")", new IntegerObject(11)},
+                new object[] { "len(1)", new ErrorObject(new[] { "argument to \"len\" not supported, got Integer" }) },
+                new object[] { "len(\"one\", \"two\")", new ErrorObject(new[] { "wrong number of arguments. got=2, want=1" }) }
+            };
 
         [Theory]
         [MemberData(nameof(BooleanData))]
@@ -77,25 +106,25 @@ namespace MonkeyLang.Tests
         public static IEnumerable<object[]> BooleanData =>
             new List<object[]>
             {
-                new object[] { "true", true },
-                new object[] { "false", false },
-                new object[] {"1 < 2", true},
-                new object[] {"1 > 2", false},
-                new object[] {"1 < 1", false},
-                new object[] {"1 > 1", false},
-                new object[] {"1 == 1", true},
-                new object[] {"1 != 1", false},
-                new object[] {"1 == 2", false},
-                new object[] {"1 != 2", true},
-                new object[] {"true == true", true},
-                new object[] {"false == false", true},
-                new object[] {"true == false", false},
-                new object[] {"true != false", true},
-                new object[] {"false != true", true},
-                new object[] {"(1 < 2) == true", true},
-                new object[] {"(1 < 2) == false", false},
-                new object[] {"(1 > 2) == true", false},
-                new object[] {"(1 > 2) == false", true},
+                new object[] { "true", true  },
+                new object[] { "false", false  },
+                new object[] { "1 < 2", true },
+                new object[] { "1 > 2", false },
+                new object[] { "1 < 1", false },
+                new object[] { "1 > 1", false },
+                new object[] { "1 == 1", true },
+                new object[] { "1 != 1", false },
+                new object[] { "1 == 2", false },
+                new object[] { "1 != 2", true },
+                new object[] { "true == true", true },
+                new object[] { "false == false", true },
+                new object[] { "true == false", false },
+                new object[] { "true != false", true },
+                new object[] { "false != true", true },
+                new object[] { "(1 < 2) == true", true },
+                new object[] { "(1 < 2) == false", false },
+                new object[] { "(1 > 2) == true", false },
+                new object[] { "(1 > 2) == false", true },
             };
 
         [Theory]
@@ -133,13 +162,13 @@ namespace MonkeyLang.Tests
         public static IEnumerable<object[]> ConditionalData =>
             new List<object[]>
             {
-                new object[] {"if (true) { 10 }", new IntegerObject(10) },
-                new object[] {"if (false) { 10 }", NullObject.Null },
-                new object[] {"if (1) { 10 }", new IntegerObject(10) },
-                new object[] {"if (1 < 2) { 10 }", new IntegerObject(10) },
-                new object[] {"if (1 > 2) { 10 }", NullObject.Null },
-                new object[] {"if (1 > 2) { 10 } else { 20 }", new IntegerObject(20) },
-                new object[] {"if (1 < 2) { 10 } else { 20 }", new IntegerObject(10) },
+                new object[] { "if (true) {  10 }", new IntegerObject(10) },
+                new object[] { "if (false) {  10 }", NullObject.Null },
+                new object[] { "if (1) {  10 }", new IntegerObject(10) },
+                new object[] { "if (1 < 2) {  10 }", new IntegerObject(10) },
+                new object[] { "if (1 > 2) {  10 }", NullObject.Null },
+                new object[] { "if (1 > 2) {  10 } else {  20 }", new IntegerObject(20) },
+                new object[] { "if (1 < 2) {  10 } else {  20 }", new IntegerObject(10) },
             };
 
         [Theory]
@@ -269,12 +298,12 @@ namespace MonkeyLang.Tests
         public static IEnumerable<object[]> FunctionData =>
             new List<object[]>
             {
-                new object[] {"let identity = fn(x) { x; }; identity(5);", 5},
-                new object[] {"let identity = fn(x) { return x; }; identity(5);", 5},
-                new object[] {"let double = fn(x) { x * 2; }; double(5);", 10},
-                new object[] {"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
-                new object[] {"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
-                new object[] {"fn(x) { x; }(5)", 5},
+                new object[] { "let identity = fn(x) {  x;  }; identity(5);", 5 },
+                new object[] { "let identity = fn(x) {  return x;  }; identity(5);", 5 },
+                new object[] { "let double = fn(x) {  x * 2;  }; double(5);", 10 },
+                new object[] { "let add = fn(x, y) {  x + y;  }; add(5, 5);", 10 },
+                new object[] { "let add = fn(x, y) {  x + y;  }; add(5 + 5, add(5, 5));", 20 },
+                new object[] { "fn(x) {  x;  }(5)", 5 },
             };
 
         [Fact]

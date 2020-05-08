@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
 
 namespace MonkeyLang
@@ -8,10 +9,10 @@ namespace MonkeyLang
     {
         public ErrorObject(IEnumerable<string> errorMessages)
         {
-            Messages = errorMessages;
+            Messages = errorMessages.ToImmutableList();
         }
 
-        public IEnumerable<string> Messages { get; }
+        public IImmutableList<string> Messages { get; }
 
         public ObjectType Type => ObjectType.Error;
 

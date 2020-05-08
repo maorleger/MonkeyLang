@@ -17,6 +17,7 @@ namespace MonkeyLang
             Parser = parser;
             Environments = new Stack<RuntimeEnvironment>();
             Environments.Push(new RuntimeEnvironment());
+            CurrentEnvironment.Set("len", new BuiltIn(BuiltIn.BuiltInLen));
         }
 
         private Parser Parser { get; }
@@ -195,6 +196,10 @@ namespace MonkeyLang
 
                 Environments.Pop();
                 return result;
+            }
+            else if (value is BuiltIn builtInObject)
+            {
+                return builtInObject.Fn(arguments.Select(Evaluate).ToArray());
             }
             throw new EvaluatorException($"undefined local variable or method {fn.StringValue}");
         }

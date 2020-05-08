@@ -8,6 +8,7 @@
         Null,
         Error,
         Function,
-        String
+        String,
+        BuiltIn
     }
 }
