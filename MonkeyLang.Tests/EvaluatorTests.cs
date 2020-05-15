@@ -324,6 +324,43 @@ addTwo(3);
             Assert.Equal(5, intObj.Value);
         }
 
+        [Fact]
+        public void Evaluate_CanEvaluateArrays()
+        {
+            var input = "[1, 2 * 2, 3 + 3]";
+
+            var actual = subject.Evaluate(input);
+            var arrayObject = AssertAndCast<ArrayObject>(actual);
+
+            Assert.Equal(arrayObject.Elements[0], new IntegerObject(1));
+            Assert.Equal(arrayObject.Elements[1], new IntegerObject(4));
+            Assert.Equal(arrayObject.Elements[2], new IntegerObject(6));
+        }
+
+        [Theory]
+        [MemberData(nameof(ArrayIndexingData))]
+        public void Evaluate_CanEvaluateArrayIndexing(string input, IObject expected)
+        {
+            var actual = subject.Evaluate(input);
+            Assert.NotNull(actual);
+            Assert.Equal(expected, actual);
+        }
+
+        public static IEnumerable<object[]> ArrayIndexingData =>
+            new List<object[]>
+            {
+                new object[] { "[1, 2, 3][0]", new IntegerObject(1), },
+                new object[] { "[1, 2, 3][1]", new IntegerObject(2), },
+                new object[] { "[1, 2, 3][2]", new IntegerObject(3), },
+                new object[] { "let i = 0; [1][i];", new IntegerObject(1), },
+                new object[] { "[1, 2, 3][1 + 1];",  new IntegerObject(3) },
+                new object[] { "let myArray = [1, 2, 3]; myArray[2];", new IntegerObject(3), },
+                new object[] { "let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];", new IntegerObject(6) },
+                new object[] { "let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]", new IntegerObject(2) },
+                new object[] { "[1, 2, 3][3]", NullObject.Null },
+                new object[] { "[1, 2, 3][-1]", NullObject.Null }
+            };
+
         private T AssertAndCast<T>(object obj) where T : class
         {
             Assert.IsType<T>(obj);

@@ -9,6 +9,7 @@
         Error,
         Function,
         String,
-        BuiltIn
+        BuiltIn,
+        Array
     }
 }

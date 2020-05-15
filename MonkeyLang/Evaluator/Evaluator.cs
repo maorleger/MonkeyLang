@@ -56,6 +56,8 @@ namespace MonkeyLang
                     FunctionLiteral fnLiteral => new FunctionObject(fnLiteral.Parameters, fnLiteral.Body, CurrentEnvironment),
                     CallExpression callExpr => EvaluateCallExpression(callExpr.Function, callExpr.Arguments),
                     BlockStatement blockStmt => EvaluateStatements(blockStmt.Statements, unwrapReturn: true),
+                    ArrayLiteral arrayLiteral => new ArrayObject(arrayLiteral.Elements.Select(Evaluate)),
+                    IndexExpression indexExpression => EvaluateIndexExpression(Evaluate(indexExpression.Left), Evaluate(indexExpression.Index)),
                     _ => NullObject.Null
                 };
             }
@@ -63,6 +65,25 @@ namespace MonkeyLang
             {
                 return new ErrorObject(new[] { ex.Message });
             }
+        }
+
+        private IObject EvaluateIndexExpression(IObject left, IObject index)
+        {
+            return (left, index) switch
+            {
+                (ArrayObject arr, IntegerObject idx) => EvaluateArrayIndexExpression(arr, idx),
+                _ => throw new EvaluatorException($"index operator not supported: {left.Type.GetDescription()}")
+            };
+        }
+
+        private IObject EvaluateArrayIndexExpression(ArrayObject arr, IntegerObject idx)
+        {
+            if (idx.Value < 0 || idx.Value > (arr.Elements.Count - 1))
+            {
+                return NullObject.Null;
+            }
+
+            return arr.Elements[idx.Value];
         }
 
         private IObject EvaluateIdentifier(Identifier ident)

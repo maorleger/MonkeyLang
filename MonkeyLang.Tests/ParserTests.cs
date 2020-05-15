@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using Xunit;
@@ -325,6 +326,9 @@ if (x < y) { x } else { y }
                 new object[] { "2 / (5 + 5)", "(2 / (5 + 5))" },
                 new object[] { "-(5 + 5)", "(-(5 + 5))" },
                 new object[] { "!(true == true)", "(!(true == true))" },
+                //Array indexing
+                new object[] { "a * [1, 2, 3, 4][b * c] * d", "((a * ([1, 2, 3, 4][(b * c)])) * d)", },
+                new object[] { "add(a * b[2], b[1], 2 * [1, 2][1])", "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))", },
             };
 
         [Fact]
@@ -340,6 +344,47 @@ if (x < y) { x } else { y }
             var stringResult = AssertAndCast<StringLiteral>(expr.Expression);
 
             Assert.Equal("hello world", stringResult.Value);
+        }
+
+        [Fact]
+        public void Parser_CanParseArrayLiterals()
+        {
+            var input = @"[1, 2 * 2, 3 + 3]";
+
+            AST result = subject.ParseProgram(input);
+
+            Assert.Empty(result.Errors);
+            Assert.Equal(1, result.Program.Statements.Count);
+            var expr = AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
+            var arrayResult = AssertAndCast<ArrayLiteral>(expr.Expression);
+            Assert.Equal(3, arrayResult.Elements.Count);
+
+            var intLiteral = AssertAndCast<IntegerLiteral>(arrayResult.Elements[0]);
+            Assert.Equal(1, intLiteral.Value);
+
+            var exprLiteral = AssertAndCast<InfixExpression>(arrayResult.Elements[1]);
+            Assert.Equal("(2 * 2)", exprLiteral.StringValue);
+
+            exprLiteral = AssertAndCast<InfixExpression>(arrayResult.Elements[2]);
+            Assert.Equal("(3 + 3)", exprLiteral.StringValue);
+        }
+
+        [Fact]
+        public void Parser_CanParseIndexExpressions()
+        {
+            var input = "myArray[1 + 1]";
+
+            AST result = subject.ParseProgram(input);
+
+            Assert.Empty(result.Errors);
+            Assert.Equal(1, result.Program.Statements.Count);
+            var expr = AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
+            var indexExpr = AssertAndCast<IndexExpression>(expr.Expression);
+
+            var ident = (indexExpr.Left as Identifier).Value;
+            Assert.Equal("myArray", ident);
+
+            Parser_CanParseInfixExpressions(indexExpr.Index.StringValue, 1, TokenType.Plus, 1);
         }
 
         private T AssertAndCast<T>(object obj) where T : class

@@ -53,6 +53,11 @@ namespace MonkeyLang
         If,
         Else,
         Return,
-        String
+        String,
+
+        [Description("[")]
+        LBracket,
+        [Description("]")]
+        RBracket
     }
 }

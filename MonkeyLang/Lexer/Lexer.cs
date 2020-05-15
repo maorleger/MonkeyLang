@@ -46,6 +46,8 @@ namespace MonkeyLang
         static readonly Parser<char, Token> RParen = Tok(")").Select(t => new Token(TokenType.RParen, t));
         static readonly Parser<char, Token> LBrace = Tok("{").Select(t => new Token(TokenType.LBrace, t));
         static readonly Parser<char, Token> RBrace = Tok("}").Select(t => new Token(TokenType.RBrace, t));
+        static readonly Parser<char, Token> LBracket = Tok("[").Select(t => new Token(TokenType.LBracket, t));
+        static readonly Parser<char, Token> RBracket = Tok("]").Select(t => new Token(TokenType.RBracket, t));
         static readonly Parser<char, Token> Comma = Tok(",").Select(t => new Token(TokenType.Comma, t));
         static readonly Parser<char, Token> SemiColon = Tok(";").Select(t => new Token(TokenType.Semicolon, t));
         static readonly Parser<char, Token> Bang = Tok("!").Select(t => new Token(TokenType.Bang, t));
@@ -65,6 +67,8 @@ namespace MonkeyLang
             RParen,
             LBrace,
             RBrace,
+            LBracket,
+            RBracket,
             Comma,
             SemiColon,
             Bang,

@@ -26,7 +26,8 @@ namespace MonkeyLang
                 { TokenType.Minus, ParsePrefixExpression },
                 { TokenType.LParen, ParseGroupedExpression },
                 { TokenType.If, ParseIfExpression },
-                { TokenType.Function, ParseFunctionLiteral }
+                { TokenType.Function, ParseFunctionLiteral },
+                { TokenType.LBracket, ParseArrayLiteral }
             };
 
             this.InfixParseFns = new Dictionary<TokenType, Func<IExpression, IExpression>>()
@@ -39,7 +40,8 @@ namespace MonkeyLang
                 { TokenType.Not_Eq, ParseInfixExpression },
                 { TokenType.LT, ParseInfixExpression },
                 { TokenType.GT, ParseInfixExpression },
-                { TokenType.LParen, ParseCallExpression }
+                { TokenType.LParen, ParseCallExpression },
+                { TokenType.LBracket, ParseIndexExpression }
             };
         }
 
@@ -59,7 +61,8 @@ namespace MonkeyLang
             { TokenType.Minus, Precedence.Sum },
             { TokenType.Slash, Precedence.Product },
             { TokenType.Asterisk, Precedence.Product },
-            { TokenType.LParen, Precedence.Call }
+            { TokenType.LParen, Precedence.Call },
+            { TokenType.LBracket, Precedence.Index }
         };
 
         private Precedence PeekPrecedence() => Precedences.GetValueOrDefault(PeekToken.Type, Precedence.Lowest);
@@ -239,7 +242,7 @@ namespace MonkeyLang
             Trace.WriteLine("BEGIN CALL_EXPRESSION");
 
             var token = CurrentToken;
-            var arguments = ParseCallArguments();
+            var arguments = ParseExpressionList(TokenType.RParen);
 
             Trace.WriteLine("END CALL_EXPRESSION");
             Trace.Unindent();
@@ -247,13 +250,35 @@ namespace MonkeyLang
             return new CallExpression(token, function, arguments);
         }
 
-        private IEnumerable<IExpression> ParseCallArguments()
+        private IExpression ParseIndexExpression(IExpression left)
+        {
+            Trace.Indent();
+            Trace.WriteLine("BEGIN INDEX_EXPRESSION");
+
+            var token = CurrentToken;
+
+            AdvanceTokens();
+
+            var index = ParseExpression(Precedence.Lowest);
+
+            if (!ExpectPeek(TokenType.RBracket))
+            {
+                throw new ParseException($"expected {TokenType.RBracket.GetDescription()}, got {PeekToken}");
+            }
+
+            Trace.WriteLine("END INDEX_EXPRESSION");
+            Trace.Unindent();
+
+            return new IndexExpression(CurrentToken, left, index);
+        }
+
+        private IEnumerable<IExpression> ParseExpressionList(TokenType end)
         {
             List<IExpression> result = new List<IExpression>();
 
             AdvanceTokens();
 
-            if (CurrentToken.Type == TokenType.RParen)
+            if (CurrentToken.Type == end)
             {
                 return result;
             }
@@ -267,7 +292,10 @@ namespace MonkeyLang
                 result.Add(ParseExpression(Precedence.Lowest));
             }
 
-            ExpectPeek(TokenType.RParen);
+            if (!ExpectPeek(end))
+            {
+                throw new ParseException($"Expected {end.GetDescription()}, got {PeekToken}");
+            }
 
             return result;
         }
@@ -317,6 +345,21 @@ namespace MonkeyLang
             ExpectPeek(TokenType.RParen);
 
             return result;
+        }
+
+        private IExpression ParseArrayLiteral()
+        {
+            Trace.Indent();
+            Trace.WriteLine("BEGIN ARRAY");
+
+            var currentToken = CurrentToken;
+
+            IEnumerable<IExpression> elements = ParseExpressionList(TokenType.RBracket);
+
+            Trace.WriteLine("END ARRAY");
+            Trace.Unindent();
+
+            return new ArrayLiteral(currentToken, elements);
         }
 
         private IExpression ParseGroupedExpression()
@@ -420,7 +463,8 @@ namespace MonkeyLang
             Sum,
             Product,
             Prefix,
-            Call
+            Call,
+            Index
         }
 
     }
