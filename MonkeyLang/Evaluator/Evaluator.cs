@@ -32,6 +32,7 @@ namespace MonkeyLang
             environment.Set("last", new BuiltIn(BuiltIn.BuiltInLast));
             environment.Set("rest", new BuiltIn(BuiltIn.BuiltInRest));
             environment.Set("push", new BuiltIn(BuiltIn.BuiltInPush));
+            environment.Set("puts", new BuiltIn(BuiltIn.BuiltInPuts));
             return Evaluate(result.Program, environment);
         }
 
@@ -57,6 +58,7 @@ namespace MonkeyLang
                     BlockStatement blockStmt => EvaluateStatements(blockStmt.Statements, environment, unwrapReturn: true),
                     ArrayLiteral arrayLiteral => new ArrayObject(arrayLiteral.Elements.Select(e => Evaluate(e, environment))),
                     IndexExpression indexExpression => EvaluateIndexExpression(Evaluate(indexExpression.Left, environment), Evaluate(indexExpression.Index, environment)),
+                    HashLiteral hashLiteral => EvaluateHashLiteral(hashLiteral, environment),
                     _ => NullObject.Null
                 };
             }
@@ -64,25 +66,6 @@ namespace MonkeyLang
             {
                 return new ErrorObject(new[] { ex.Message });
             }
-        }
-
-        private IObject EvaluateIndexExpression(IObject left, IObject index)
-        {
-            return (left, index) switch
-            {
-                (ArrayObject arr, IntegerObject idx) => EvaluateArrayIndexExpression(arr, idx),
-                _ => throw new EvaluatorException($"index operator not supported: {left.Type.GetDescription()}")
-            };
-        }
-
-        private IObject EvaluateArrayIndexExpression(ArrayObject arr, IntegerObject idx)
-        {
-            if (idx.Value < 0 || idx.Value > (arr.Elements.Count - 1))
-            {
-                return NullObject.Null;
-            }
-
-            return arr.Elements[idx.Value];
         }
 
         private IObject EvaluateIdentifier(Identifier ident, RuntimeEnvironment environment)
@@ -222,6 +205,51 @@ namespace MonkeyLang
                 return builtInObject.Fn(resolvedArguments);
             }
             throw new EvaluatorException($"undefined local variable or method {fn.StringValue}");
+        }
+
+        private IObject EvaluateIndexExpression(IObject left, IObject index)
+        {
+            return (left, index) switch
+            {
+                (ArrayObject arr, IntegerObject idx) => EvaluateArrayIndexExpression(arr, idx),
+                (HashObject hash, _) => EvaluateHashIndexExpression(hash, index),
+                _ => throw new EvaluatorException($"index operator not supported: {left.Type.GetDescription()}")
+            };
+        }
+
+        private IObject EvaluateHashIndexExpression(HashObject hash, IObject key)
+        {
+            return hash.Pairs.GetValueOrDefault(key) ?? NullObject.Null;
+        }
+
+        private IObject EvaluateArrayIndexExpression(ArrayObject arr, IntegerObject idx)
+        {
+            if (idx.Value < 0 || idx.Value > (arr.Elements.Count - 1))
+            {
+                return NullObject.Null;
+            }
+
+            return arr.Elements[idx.Value];
+        }
+
+        private IObject EvaluateHashLiteral(HashLiteral hashLiteral, RuntimeEnvironment environment)
+        {
+            Dictionary<IObject, IObject> evaluatedPairs = new Dictionary<IObject, IObject>();
+            foreach (var item in hashLiteral.Pairs)
+            {
+                var key = Evaluate(item.Key, environment);
+
+                if (!(key is IEquatable<IObject?>))
+                {
+                    throw new EvaluatorException($"unusable as hash key: {key.Type}");
+                }
+
+                var value = Evaluate(item.Value, environment);
+
+                evaluatedPairs[key] = Evaluate(item.Value, environment);
+            }
+
+            return new HashObject(evaluatedPairs);
         }
 
         private IObject EvaluateStatements(IImmutableList<IStatement> statements, RuntimeEnvironment environment, bool unwrapReturn = false)

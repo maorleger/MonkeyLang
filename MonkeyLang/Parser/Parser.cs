@@ -27,7 +27,8 @@ namespace MonkeyLang
                 { TokenType.LParen, ParseGroupedExpression },
                 { TokenType.If, ParseIfExpression },
                 { TokenType.Function, ParseFunctionLiteral },
-                { TokenType.LBracket, ParseArrayLiteral }
+                { TokenType.LBracket, ParseArrayLiteral },
+                { TokenType.LBrace, ParseHashLiteral }
             };
 
             this.InfixParseFns = new Dictionary<TokenType, Func<IExpression, IExpression>>()
@@ -360,6 +361,48 @@ namespace MonkeyLang
             Trace.Unindent();
 
             return new ArrayLiteral(currentToken, elements);
+        }
+
+        private IExpression ParseHashLiteral()
+        {
+            Trace.Indent();
+            Trace.WriteLine("BEGIN HASH");
+
+            var currentToken = CurrentToken;
+            var pairs = new Dictionary<IExpression, IExpression>();
+
+            while (PeekToken.Type != TokenType.RBrace)
+            {
+                AdvanceTokens();
+
+                var key = ParseExpression(Precedence.Lowest);
+
+                if (!ExpectPeek(TokenType.Colon))
+                {
+                    throw new ParseException($"Expected ':', got {PeekToken}");
+                }
+
+                AdvanceTokens();
+
+                var value = ParseExpression(Precedence.Lowest);
+
+                pairs[key] = value;
+
+                if (PeekToken.Type != TokenType.RBrace && !ExpectPeek(TokenType.Comma))
+                {
+                    throw new ParseException($"Expected '}}' or ',', got {PeekToken}");
+                }
+            }
+
+            if (!ExpectPeek(TokenType.RBrace))
+            {
+                throw new ParseException($"Expected '}}', got {PeekToken}");
+            }
+
+            Trace.WriteLine("END HASH");
+            Trace.Unindent();
+
+            return new HashLiteral(currentToken, pairs);
         }
 
         private IExpression ParseGroupedExpression()

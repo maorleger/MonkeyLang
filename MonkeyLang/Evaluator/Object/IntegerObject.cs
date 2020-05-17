@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace MonkeyLang
 {
-    public class IntegerObject : IObject, IEquatable<IntegerObject?>
+    public class IntegerObject : IObject, IEquatable<IObject?>
     {
         public IntegerObject(int value)
         {
@@ -20,6 +20,8 @@ namespace MonkeyLang
         {
             return Equals(obj as IntegerObject);
         }
+
+        public bool Equals(IObject? other) => Equals(other as IntegerObject);
 
         public bool Equals(IntegerObject? other)
         {

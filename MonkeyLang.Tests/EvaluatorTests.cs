@@ -1,12 +1,7 @@
-﻿using Microsoft.VisualBasic;
-using Pidgin;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.PortableExecutable;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using Xunit;
+using Xunit.Sdk;
 
 namespace MonkeyLang.Tests
 {
@@ -377,7 +372,7 @@ let map = fn(arr, f) {
     };
     iter(arr, []);
 };
-map([2,4], fn(x) { x * 2 });
+map([2,3], fn(x) { x * 2 });
 ";
 
             ArrayObject actual = AssertAndCast<ArrayObject>(subject.Evaluate(input, environment));
@@ -386,6 +381,56 @@ map([2,4], fn(x) { x * 2 });
             Assert.Equal(4, intResult.Value);
             intResult = AssertAndCast<IntegerObject>(actual.Elements[1]);
             Assert.Equal(6, intResult.Value);
+        }
+
+        [Fact]
+        public void Evaluate_CanEvaluateHashLiteral()
+        {
+            var input = @"
+let two = ""two"";
+{
+    ""one"": 10 - 9,
+    two: 1 + 1,
+    ""thr"" + ""ee"": 6/ 2,
+    4: 4,
+    true: 5,
+    false: 6
+}
+";
+
+            HashObject actual = AssertAndCast<HashObject>(subject.Evaluate(input, environment));
+
+            var expected = new Dictionary<IObject, IObject>()
+            {
+                { new StringObject("one"), new IntegerObject(1) },
+                { new StringObject("two"), new IntegerObject(2) },
+                { new StringObject("three"), new IntegerObject(3) },
+                { new IntegerObject(4), new IntegerObject(4) },
+                { BooleanObject.True, new IntegerObject(5) },
+                { BooleanObject.False, new IntegerObject(6) }
+            }.ToImmutableDictionary();
+
+            Assert.Equal(expected, actual.Pairs);
+        }
+
+        [Fact]
+        private void Evaluate_CanEvaluateHashIndexing()
+        {
+            var input = @"
+let two = ""two"";
+let h = {
+    ""one"": 10 - 9,
+    two: 1 + 1,
+    ""thr"" + ""ee"": 6/ 2,
+    4: 4,
+    true: 5,
+    false: 6
+};
+h[1 + 3];
+";
+
+            IntegerObject actual = AssertAndCast<IntegerObject>(subject.Evaluate(input, environment));
+            Assert.Equal(4, actual.Value);
         }
 
         private T AssertAndCast<T>(object obj) where T : class

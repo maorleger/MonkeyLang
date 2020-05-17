@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MonkeyLang
 {
-    public class StringObject : IObject, IEquatable<StringObject?>
+    public class StringObject : IObject, IEquatable<IObject?>
     {
         public StringObject(string value)
         {
@@ -22,7 +22,9 @@ namespace MonkeyLang
         {
             return Equals(obj as StringObject);
         }
-        
+
+        public bool Equals(IObject? other) => Equals(other as StringObject);
+
         public bool Equals(StringObject? other)
         {
             return other != null && Value == other.Value;

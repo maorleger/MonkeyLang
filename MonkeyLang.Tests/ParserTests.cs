@@ -387,6 +387,49 @@ if (x < y) { x } else { y }
             Parser_CanParseInfixExpressions(indexExpr.Index.StringValue, 1, TokenType.Plus, 1);
         }
 
+        [Fact]
+        public void Parser_CanParseHashLiterals()
+        {
+            var input = @"{""one"":1, ""two"": 2, ""three"": 3}";
+
+            AST result = subject.ParseProgram(input);
+
+            Assert.Empty(result.Errors);
+            Assert.Equal(1, result.Program.Statements.Count);
+            var expr = AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
+            var hashExpr = AssertAndCast<HashLiteral>(expr.Expression);
+
+            Assert.Equal(3, hashExpr.Pairs.Count);
+
+            var expected = new Dictionary<string, string>()
+            {
+                { "one", "1" },
+                { "two", "2" },
+                { "three", "3" }
+            }.ToImmutableDictionary();
+
+            var actual = ImmutableDictionary.CreateRange<string, string>(
+                hashExpr.Pairs.Select(kv =>
+                    new KeyValuePair<string, string>(kv.Key.StringValue, kv.Value.StringValue)
+                )
+            );
+        }
+
+        [Fact]
+        public void Parser_CanParseEmptyHashes()
+        {
+            var input = "{}";
+
+            AST result = subject.ParseProgram(input);
+
+            Assert.Empty(result.Errors);
+            Assert.Equal(1, result.Program.Statements.Count);
+            var expr = AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
+            var hashExpr = AssertAndCast<HashLiteral>(expr.Expression);
+
+            Assert.Equal(0, hashExpr.Pairs.Count);
+        }
+
         private T AssertAndCast<T>(object obj) where T : class
         {
             Assert.IsType<T>(obj);

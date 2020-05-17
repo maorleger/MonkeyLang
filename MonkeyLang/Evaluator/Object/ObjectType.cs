@@ -10,6 +10,7 @@
         Function,
         String,
         BuiltIn,
-        Array
+        Array,
+        Hash
     }
 }

@@ -88,5 +88,15 @@ namespace MonkeyLang
                 _ => throw new EvaluatorException($"argument to \"push\" not supported, got {args.First().Type}")
             };
         }
+
+        public static IObject BuiltInPuts(IEnumerable<IObject> args)
+        {
+            foreach (var item in args)
+            {
+                Console.WriteLine(item.Inspect());
+            }
+
+            return NullObject.Null;
+        }
     }
 }

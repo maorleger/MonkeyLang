@@ -36,6 +36,8 @@ namespace MonkeyLang
         Comma,
         [Description(";")]
         Semicolon,
+        [Description(":")]
+        Colon,
 
         [Description("(")]
         LParen,
