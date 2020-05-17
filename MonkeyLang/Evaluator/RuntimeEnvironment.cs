@@ -6,6 +6,7 @@ using System.Text;
 
 namespace MonkeyLang
 {
+    [Export]
     public class RuntimeEnvironment
     {
         public RuntimeEnvironment() : this(null) { }

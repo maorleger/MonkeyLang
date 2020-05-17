@@ -12,7 +12,7 @@ namespace MonkeyLang
         {
             Parameters = parameters.ToImmutableList();
             Body = body;
-            Environment = environment.Extend();
+            Environment = environment;
         }
 
         public IImmutableList<Identifier> Parameters { get; }
