@@ -270,7 +270,7 @@ namespace MonkeyLang
             Trace.WriteLine("END INDEX_EXPRESSION");
             Trace.Unindent();
 
-            return new IndexExpression(CurrentToken, left, index);
+            return new IndexExpression(token, left, index);
         }
 
         private IEnumerable<IExpression> ParseExpressionList(TokenType end)

@@ -244,8 +244,6 @@ namespace MonkeyLang
                     throw new EvaluatorException($"unusable as hash key: {key.Type}");
                 }
 
-                var value = Evaluate(item.Value, environment);
-
                 evaluatedPairs[key] = Evaluate(item.Value, environment);
             }
 

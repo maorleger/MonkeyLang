@@ -414,7 +414,7 @@ let two = ""two"";
         }
 
         [Fact]
-        private void Evaluate_CanEvaluateHashIndexing()
+        public void Evaluate_CanEvaluateHashIndexing()
         {
             var input = @"
 let two = ""two"";
