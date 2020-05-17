@@ -7,6 +7,10 @@
         Return,
         Null,
         Error,
-        Function
+        Function,
+        String,
+        BuiltIn,
+        Array,
+        Hash
     }
 }

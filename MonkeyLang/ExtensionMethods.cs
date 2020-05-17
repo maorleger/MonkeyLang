@@ -37,13 +37,13 @@ namespace MonkeyLang
                 FieldInfo? field = type.GetField(name);
                 if (field != null)
                 {
-                    DescriptionAttribute? attr =
-                           Attribute.GetCustomAttribute(field,
-                             typeof(DescriptionAttribute)) as DescriptionAttribute;
-                    if (attr != null)
+                    var customAttribute = Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute));
+
+                    return customAttribute switch
                     {
-                        return attr.Description;
-                    }
+                        DescriptionAttribute attr => attr.Description,
+                        _ => value.ToString(),
+                    };
                 }
             }
             return value.ToString();

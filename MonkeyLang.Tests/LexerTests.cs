@@ -66,6 +66,11 @@ if (5 < 10) {
 }
 10 == 10;
 10 != 9;
+""foobar"";
+""foo bar"";
+
+[1, 2];
+{""foo"": ""bar""}
             ");
 
             var expected = new List<Token>()
@@ -143,6 +148,21 @@ if (5 < 10) {
                 new Token(TokenType.Not_Eq, "!="),
                 new Token(TokenType.Int, "9"),
                 new Token(TokenType.Semicolon, ";"),
+                new Token(TokenType.String, "foobar"),
+                new Token(TokenType.Semicolon, ";"),
+                new Token(TokenType.String, "foo bar"),
+                new Token(TokenType.Semicolon, ";"),
+                new Token(TokenType.LBracket, "["),
+                new Token(TokenType.Int, "1"),
+                new Token(TokenType.Comma, ","),
+                new Token(TokenType.Int, "2"),
+                new Token(TokenType.RBracket, "]"),
+                new Token(TokenType.Semicolon, ";"),
+                new Token(TokenType.LBrace, "{"),
+                new Token(TokenType.String, "foo"),
+                new Token(TokenType.Colon, ":"),
+                new Token(TokenType.String, "bar"),
+                new Token(TokenType.RBrace, "}"),
                 new Token(TokenType.EOF, "")
             };
 

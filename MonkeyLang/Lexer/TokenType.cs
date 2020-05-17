@@ -36,6 +36,8 @@ namespace MonkeyLang
         Comma,
         [Description(";")]
         Semicolon,
+        [Description(":")]
+        Colon,
 
         [Description("(")]
         LParen,
@@ -52,6 +54,12 @@ namespace MonkeyLang
         False,
         If,
         Else,
-        Return
+        Return,
+        String,
+
+        [Description("[")]
+        LBracket,
+        [Description("]")]
+        RBracket
     }
 }

@@ -1,11 +1,7 @@
-﻿using Microsoft.VisualBasic;
-using Pidgin;
-using System;
-using System.Collections.Generic;
-using System.Reflection.PortableExecutable;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using Xunit;
+using Xunit.Sdk;
 
 namespace MonkeyLang.Tests
 {
@@ -14,15 +10,17 @@ namespace MonkeyLang.Tests
         public EvaluatorTests()
         {
             subject = new Evaluator(new Parser(new Lexer()));
+            environment = new RuntimeEnvironment();
         }
 
         private readonly Evaluator subject;
+        private readonly RuntimeEnvironment environment;
 
         [Theory]
         [MemberData(nameof(IntegerData))]
         public void Evaluate_CanEvalIntegerExpressions(string input, int expected)
         {
-            var actual = subject.Evaluate(input);
+            var actual = subject.Evaluate(input, environment);
             Assert.NotNull(actual);
             var intResult = AssertAndCast<IntegerObject>(actual);
             Assert.Equal(expected, intResult.Value);
@@ -33,24 +31,70 @@ namespace MonkeyLang.Tests
             {
                 new object[] { "5", 5 },
                 new object[] { "10", 10 },
-                new object[] {"5 + 5 + 5 + 5 - 10", 10},
-                new object[] {"2 * 2 * 2 * 2 * 2", 32},
-                new object[] {"-50 + 100 + -50", 0},
-                new object[] {"5 * 2 + 10", 20},
-                new object[] {"5 + 2 * 10", 25},
-                new object[] {"20 + 2 * -10", 0},
-                new object[] {"50 / 2 * 2 + 10", 60},
-                new object[] {"2 * (5 + 10)", 30},
-                new object[] {"3 * 3 * 3 + 10", 37},
-                new object[] {"3 * (3 * 3) + 10", 37},
-                new object[] {"(5 + 10 * 2 + 15 / 3) * 2 + -10", 50}
+                new object[] { "5 + 5 + 5 + 5 - 10", 10 },
+                new object[] { "2 * 2 * 2 * 2 * 2", 32 },
+                new object[] { "-50 + 100 + -50", 0 },
+                new object[] { "5 * 2 + 10", 20 },
+                new object[] { "5 + 2 * 10", 25 },
+                new object[] { "20 + 2 * -10", 0 },
+                new object[] { "50 / 2 * 2 + 10", 60 },
+                new object[] { "2 * (5 + 10)", 30 },
+                new object[] { "3 * 3 * 3 + 10", 37 },
+                new object[] { "3 * (3 * 3) + 10", 37 },
+                new object[] { "(5 + 10 * 2 + 15 / 3) * 2 + -10", 50 }
+            };
+
+        [Theory]
+        [MemberData(nameof(StringData))]
+        public void Evaluate_CanEvalStringExpressions(string input, string expected)
+        {
+            var actual = subject.Evaluate(input, environment);
+            Assert.NotNull(actual);
+            var stringResult = AssertAndCast<StringObject>(actual);
+            Assert.Equal(expected, stringResult.Value);
+        }
+
+        public static IEnumerable<object[]> StringData =>
+            new List<object[]>
+            {
+                new object[] { "\"foo bar\"", "foo bar" },
+                new object[] { "\"foo\" + \"bar\"", "foobar" }
+            };
+
+        [Theory]
+        [MemberData(nameof(BuiltInFunctionData))]
+        public void Evaluate_CanEvalBuiltInFunctions(string input, IObject expected)
+        {
+            var actual = subject.Evaluate(input, environment);
+            Assert.NotNull(actual);
+
+            if (expected is ErrorObject expError)
+            {
+                var errResult = AssertAndCast<ErrorObject>(actual);
+                Assert.Equal(1, errResult.Messages.Count);
+                Assert.Equal(expError.Messages[0], errResult.Messages[0]);
+            }
+            else
+            {
+                Assert.Equal(expected, actual);
+            }
+        }
+
+        public static IEnumerable<object[]> BuiltInFunctionData =>
+            new List<object[]>
+            {
+                new object[] { "len(\"\")", new IntegerObject(0)},
+                new object[] { "len(\"four\")", new IntegerObject(4)},
+                new object[] { "len(\"hello world\")", new IntegerObject(11)},
+                new object[] { "len(1)", new ErrorObject(new[] { "argument to \"len\" not supported, got Integer" }) },
+                new object[] { "len(\"one\", \"two\")", new ErrorObject(new[] { "wrong number of arguments. got=2, want=1" }) }
             };
 
         [Theory]
         [MemberData(nameof(BooleanData))]
         public void Evaluate_CanEvalBooleanExpressions(string input, bool expected)
         {
-            var actual = subject.Evaluate(input);
+            var actual = subject.Evaluate(input, environment);
             Assert.NotNull(actual);
             var intResult = AssertAndCast<BooleanObject>(actual);
             Assert.Equal(expected, intResult.Value);
@@ -59,32 +103,32 @@ namespace MonkeyLang.Tests
         public static IEnumerable<object[]> BooleanData =>
             new List<object[]>
             {
-                new object[] { "true", true },
-                new object[] { "false", false },
-                new object[] {"1 < 2", true},
-                new object[] {"1 > 2", false},
-                new object[] {"1 < 1", false},
-                new object[] {"1 > 1", false},
-                new object[] {"1 == 1", true},
-                new object[] {"1 != 1", false},
-                new object[] {"1 == 2", false},
-                new object[] {"1 != 2", true},
-                new object[] {"true == true", true},
-                new object[] {"false == false", true},
-                new object[] {"true == false", false},
-                new object[] {"true != false", true},
-                new object[] {"false != true", true},
-                new object[] {"(1 < 2) == true", true},
-                new object[] {"(1 < 2) == false", false},
-                new object[] {"(1 > 2) == true", false},
-                new object[] {"(1 > 2) == false", true},
+                new object[] { "true", true  },
+                new object[] { "false", false  },
+                new object[] { "1 < 2", true },
+                new object[] { "1 > 2", false },
+                new object[] { "1 < 1", false },
+                new object[] { "1 > 1", false },
+                new object[] { "1 == 1", true },
+                new object[] { "1 != 1", false },
+                new object[] { "1 == 2", false },
+                new object[] { "1 != 2", true },
+                new object[] { "true == true", true },
+                new object[] { "false == false", true },
+                new object[] { "true == false", false },
+                new object[] { "true != false", true },
+                new object[] { "false != true", true },
+                new object[] { "(1 < 2) == true", true },
+                new object[] { "(1 < 2) == false", false },
+                new object[] { "(1 > 2) == true", false },
+                new object[] { "(1 > 2) == false", true },
             };
 
         [Theory]
         [MemberData(nameof(PrefixData))]
         public void Evaluate_CanEvalPrefixExpressions(string input, IObject expected)
         {
-            var actual = subject.Evaluate(input);
+            var actual = subject.Evaluate(input, environment);
             Assert.NotNull(actual);
             Assert.IsType(expected.GetType(), actual);
             Assert.Equal(expected, actual);
@@ -106,7 +150,7 @@ namespace MonkeyLang.Tests
         [MemberData(nameof(ConditionalData))]
         public void Evaluate_CanEvalConditionalExpressions(string input, IObject expected)
         {
-            var actual = subject.Evaluate(input);
+            var actual = subject.Evaluate(input, environment);
             Assert.NotNull(actual);
             Assert.IsType(expected.GetType(), actual);
             Assert.Equal(expected, actual);
@@ -115,20 +159,20 @@ namespace MonkeyLang.Tests
         public static IEnumerable<object[]> ConditionalData =>
             new List<object[]>
             {
-                new object[] {"if (true) { 10 }", new IntegerObject(10) },
-                new object[] {"if (false) { 10 }", NullObject.Null },
-                new object[] {"if (1) { 10 }", new IntegerObject(10) },
-                new object[] {"if (1 < 2) { 10 }", new IntegerObject(10) },
-                new object[] {"if (1 > 2) { 10 }", NullObject.Null },
-                new object[] {"if (1 > 2) { 10 } else { 20 }", new IntegerObject(20) },
-                new object[] {"if (1 < 2) { 10 } else { 20 }", new IntegerObject(10) },
+                new object[] { "if (true) {  10 }", new IntegerObject(10) },
+                new object[] { "if (false) {  10 }", NullObject.Null },
+                new object[] { "if (1) {  10 }", new IntegerObject(10) },
+                new object[] { "if (1 < 2) {  10 }", new IntegerObject(10) },
+                new object[] { "if (1 > 2) {  10 }", NullObject.Null },
+                new object[] { "if (1 > 2) {  10 } else {  20 }", new IntegerObject(20) },
+                new object[] { "if (1 < 2) {  10 } else {  20 }", new IntegerObject(10) },
             };
 
         [Theory]
         [MemberData(nameof(ReturnData))]
         public void Evaluate_CanEvalReturnStatements(string input, IObject expected)
         {
-            var actual = subject.Evaluate(input);
+            var actual = subject.Evaluate(input, environment);
             Assert.NotNull(actual);
             Assert.IsType(expected.GetType(), actual);
             Assert.Equal(expected, actual);
@@ -151,7 +195,7 @@ namespace MonkeyLang.Tests
         [Fact]
         public void Evaluate_CanEvalParseErrors()
         {
-            var actual = subject.Evaluate("let 5 x");
+            var actual = subject.Evaluate("let 5 x", environment);
             Assert.NotNull(actual);
             var error = AssertAndCast<ErrorObject>(actual);
             Assert.Contains("Expected an identifier, got Token [Type='Int', Literal='5']", error.Messages);
@@ -161,7 +205,7 @@ namespace MonkeyLang.Tests
         [MemberData(nameof(EvalErrorData))]
         public void Evaluate_CanHandleErrors(string input, string expected)
         {
-            var actual = subject.Evaluate(input);
+            var actual = subject.Evaluate(input, environment);
             Assert.NotNull(actual);
             var error = AssertAndCast<ErrorObject>(actual);
             Assert.Contains(expected, error.Messages);
@@ -214,7 +258,7 @@ namespace MonkeyLang.Tests
         [MemberData(nameof(LetStatementData))]
         public void Evaluate_CanEvaluateLetStatements(string input, int expected)
         {
-            var actual = subject.Evaluate(input);
+            var actual = subject.Evaluate(input, environment);
             Assert.NotNull(actual);
             var intObj = AssertAndCast<IntegerObject>(actual);
             Assert.Equal(expected, intObj.Value);
@@ -231,7 +275,7 @@ namespace MonkeyLang.Tests
         [Fact]
         public void Evaluate_CanEvaluateFunctionObject()
         {
-            var actual = subject.Evaluate("fn(x) { x + 2; }");
+            var actual = subject.Evaluate("fn(x) { x + 2; }", environment);
             var fn = AssertAndCast<FunctionObject>(actual);
             Assert.Equal(1, fn.Parameters.Count);
             Assert.Equal("x", fn.Parameters[0].StringValue);
@@ -242,7 +286,7 @@ namespace MonkeyLang.Tests
         [MemberData(nameof(FunctionData))]
         public void Evaluate_CanEvaluateFunction(string input, int expected)
         {
-            var actual = subject.Evaluate(input);
+            var actual = subject.Evaluate(input, environment);
             Assert.NotNull(actual);
             var intObj = AssertAndCast<IntegerObject>(actual);
             Assert.Equal(expected, intObj.Value);
@@ -251,12 +295,12 @@ namespace MonkeyLang.Tests
         public static IEnumerable<object[]> FunctionData =>
             new List<object[]>
             {
-                new object[] {"let identity = fn(x) { x; }; identity(5);", 5},
-                new object[] {"let identity = fn(x) { return x; }; identity(5);", 5},
-                new object[] {"let double = fn(x) { x * 2; }; double(5);", 10},
-                new object[] {"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
-                new object[] {"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
-                new object[] {"fn(x) { x; }(5)", 5},
+                new object[] { "let identity = fn(x) {  x;  }; identity(5);", 5 },
+                new object[] { "let identity = fn(x) {  return x;  }; identity(5);", 5 },
+                new object[] { "let double = fn(x) {  x * 2;  }; double(5);", 10 },
+                new object[] { "let add = fn(x, y) {  x + y;  }; add(5, 5);", 10 },
+                new object[] { "let add = fn(x, y) {  x + y;  }; add(5 + 5, add(5, 5));", 20 },
+                new object[] { "fn(x) {  x;  }(5)", 5 },
             };
 
         [Fact]
@@ -272,9 +316,121 @@ let addThree = newAdder(3);
 addTwo(3);
 ";
 
-            var actual = subject.Evaluate(input);
+            var actual = subject.Evaluate(input, environment);
             var intObj = AssertAndCast<IntegerObject>(actual);
             Assert.Equal(5, intObj.Value);
+        }
+
+        [Fact]
+        public void Evaluate_CanEvaluateArrays()
+        {
+            var input = "[1, 2 * 2, 3 + 3]";
+
+            var actual = subject.Evaluate(input, environment);
+            var arrayObject = AssertAndCast<ArrayObject>(actual);
+
+            Assert.Equal(arrayObject.Elements[0], new IntegerObject(1));
+            Assert.Equal(arrayObject.Elements[1], new IntegerObject(4));
+            Assert.Equal(arrayObject.Elements[2], new IntegerObject(6));
+        }
+
+        [Theory]
+        [MemberData(nameof(ArrayIndexingData))]
+        public void Evaluate_CanEvaluateArrayIndexing(string input, IObject expected)
+        {
+            var actual = subject.Evaluate(input, environment);
+            Assert.NotNull(actual);
+            Assert.Equal(expected, actual);
+        }
+
+        public static IEnumerable<object[]> ArrayIndexingData =>
+            new List<object[]>
+            {
+                new object[] { "[1, 2, 3][0]", new IntegerObject(1), },
+                new object[] { "[1, 2, 3][1]", new IntegerObject(2), },
+                new object[] { "[1, 2, 3][2]", new IntegerObject(3), },
+                new object[] { "let i = 0; [1][i];", new IntegerObject(1), },
+                new object[] { "[1, 2, 3][1 + 1];",  new IntegerObject(3) },
+                new object[] { "let myArray = [1, 2, 3]; myArray[2];", new IntegerObject(3), },
+                new object[] { "let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];", new IntegerObject(6) },
+                new object[] { "let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]", new IntegerObject(2) },
+                new object[] { "[1, 2, 3][3]", NullObject.Null },
+                new object[] { "[1, 2, 3][-1]", NullObject.Null }
+            };
+
+        [Fact]
+        public void Evaluate_CanEvaluateMap()
+        {
+            var input = @"
+let map = fn(arr, f) {
+    let iter = fn(arr, accumulated) {
+        if (len(arr) == 0) {
+            accumulated
+        } else {
+            iter(rest(arr), push(accumulated, f(first(arr))));
+        }
+    };
+    iter(arr, []);
+};
+map([2,3], fn(x) { x * 2 });
+";
+
+            ArrayObject actual = AssertAndCast<ArrayObject>(subject.Evaluate(input, environment));
+            Assert.Equal(2, actual.Elements.Count);
+            var intResult = AssertAndCast<IntegerObject>(actual.Elements[0]);
+            Assert.Equal(4, intResult.Value);
+            intResult = AssertAndCast<IntegerObject>(actual.Elements[1]);
+            Assert.Equal(6, intResult.Value);
+        }
+
+        [Fact]
+        public void Evaluate_CanEvaluateHashLiteral()
+        {
+            var input = @"
+let two = ""two"";
+{
+    ""one"": 10 - 9,
+    two: 1 + 1,
+    ""thr"" + ""ee"": 6/ 2,
+    4: 4,
+    true: 5,
+    false: 6
+}
+";
+
+            HashObject actual = AssertAndCast<HashObject>(subject.Evaluate(input, environment));
+
+            var expected = new Dictionary<IObject, IObject>()
+            {
+                { new StringObject("one"), new IntegerObject(1) },
+                { new StringObject("two"), new IntegerObject(2) },
+                { new StringObject("three"), new IntegerObject(3) },
+                { new IntegerObject(4), new IntegerObject(4) },
+                { BooleanObject.True, new IntegerObject(5) },
+                { BooleanObject.False, new IntegerObject(6) }
+            }.ToImmutableDictionary();
+
+            Assert.Equal(expected, actual.Pairs);
+        }
+
+        [Fact]
+        public void Evaluate_CanEvaluateHashIndexing()
+        {
+            var input = @"
+let two = ""two"";
+let h = {
+    ""one"": 10 - 9,
+    two: 1 + 1,
+    ""thr"" + ""ee"": 6/ 2,
+    4: 4,
+    true: 5,
+    false: 6
+};
+h[1 + 3];
+";
+
+            IntegerObject actual = AssertAndCast<IntegerObject>(subject.Evaluate(input, environment));
+            Assert.Equal(4, actual.Value);
         }
 
         private T AssertAndCast<T>(object obj) where T : class

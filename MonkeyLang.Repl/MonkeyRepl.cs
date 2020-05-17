@@ -8,12 +8,14 @@ namespace MonkeyLang.Repl
     public class MonkeyRepl
     {
         [ImportingConstructor]
-        public MonkeyRepl([Import] Evaluator evaluator)
+        public MonkeyRepl([Import] Evaluator evaluator, [Import] RuntimeEnvironment runtimeEnvironment)
         {
             Evaluator = evaluator;
+            Environment = runtimeEnvironment;
         }
 
-        public Evaluator Evaluator { get; }
+        private Evaluator Evaluator { get; }
+        private RuntimeEnvironment Environment { get; }
 
         public void Start()
         {
@@ -23,7 +25,7 @@ namespace MonkeyLang.Repl
             string line;
             while (!string.IsNullOrWhiteSpace(line = Console.ReadLine()))
             {
-                Console.WriteLine(Evaluator.Evaluate(line).Inspect());
+                Console.WriteLine(Evaluator.Evaluate(line, Environment).Inspect());
             }
         }
     }

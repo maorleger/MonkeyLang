@@ -21,11 +21,14 @@ namespace MonkeyLang
                 { TokenType.True, () => new Boolean(CurrentToken, true) },
                 { TokenType.False, () => new Boolean(CurrentToken, false) },
                 { TokenType.Int, () => new IntegerLiteral(CurrentToken, int.Parse(CurrentToken.Literal)) },
+                { TokenType.String, () => new StringLiteral(CurrentToken, CurrentToken.Literal) },
                 { TokenType.Bang, ParsePrefixExpression },
                 { TokenType.Minus, ParsePrefixExpression },
                 { TokenType.LParen, ParseGroupedExpression },
                 { TokenType.If, ParseIfExpression },
-                { TokenType.Function, ParseFunctionLiteral }
+                { TokenType.Function, ParseFunctionLiteral },
+                { TokenType.LBracket, ParseArrayLiteral },
+                { TokenType.LBrace, ParseHashLiteral }
             };
 
             this.InfixParseFns = new Dictionary<TokenType, Func<IExpression, IExpression>>()
@@ -38,7 +41,8 @@ namespace MonkeyLang
                 { TokenType.Not_Eq, ParseInfixExpression },
                 { TokenType.LT, ParseInfixExpression },
                 { TokenType.GT, ParseInfixExpression },
-                { TokenType.LParen, ParseCallExpression }
+                { TokenType.LParen, ParseCallExpression },
+                { TokenType.LBracket, ParseIndexExpression }
             };
         }
 
@@ -58,7 +62,8 @@ namespace MonkeyLang
             { TokenType.Minus, Precedence.Sum },
             { TokenType.Slash, Precedence.Product },
             { TokenType.Asterisk, Precedence.Product },
-            { TokenType.LParen, Precedence.Call }
+            { TokenType.LParen, Precedence.Call },
+            { TokenType.LBracket, Precedence.Index }
         };
 
         private Precedence PeekPrecedence() => Precedences.GetValueOrDefault(PeekToken.Type, Precedence.Lowest);
@@ -238,7 +243,7 @@ namespace MonkeyLang
             Trace.WriteLine("BEGIN CALL_EXPRESSION");
 
             var token = CurrentToken;
-            var arguments = ParseCallArguments();
+            var arguments = ParseExpressionList(TokenType.RParen);
 
             Trace.WriteLine("END CALL_EXPRESSION");
             Trace.Unindent();
@@ -246,13 +251,35 @@ namespace MonkeyLang
             return new CallExpression(token, function, arguments);
         }
 
-        private IEnumerable<IExpression> ParseCallArguments()
+        private IExpression ParseIndexExpression(IExpression left)
+        {
+            Trace.Indent();
+            Trace.WriteLine("BEGIN INDEX_EXPRESSION");
+
+            var token = CurrentToken;
+
+            AdvanceTokens();
+
+            var index = ParseExpression(Precedence.Lowest);
+
+            if (!ExpectPeek(TokenType.RBracket))
+            {
+                throw new ParseException($"expected {TokenType.RBracket.GetDescription()}, got {PeekToken}");
+            }
+
+            Trace.WriteLine("END INDEX_EXPRESSION");
+            Trace.Unindent();
+
+            return new IndexExpression(token, left, index);
+        }
+
+        private IEnumerable<IExpression> ParseExpressionList(TokenType end)
         {
             List<IExpression> result = new List<IExpression>();
 
             AdvanceTokens();
 
-            if (CurrentToken.Type == TokenType.RParen)
+            if (CurrentToken.Type == end)
             {
                 return result;
             }
@@ -266,7 +293,10 @@ namespace MonkeyLang
                 result.Add(ParseExpression(Precedence.Lowest));
             }
 
-            ExpectPeek(TokenType.RParen);
+            if (!ExpectPeek(end))
+            {
+                throw new ParseException($"Expected {end.GetDescription()}, got {PeekToken}");
+            }
 
             return result;
         }
@@ -316,6 +346,63 @@ namespace MonkeyLang
             ExpectPeek(TokenType.RParen);
 
             return result;
+        }
+
+        private IExpression ParseArrayLiteral()
+        {
+            Trace.Indent();
+            Trace.WriteLine("BEGIN ARRAY");
+
+            var currentToken = CurrentToken;
+
+            IEnumerable<IExpression> elements = ParseExpressionList(TokenType.RBracket);
+
+            Trace.WriteLine("END ARRAY");
+            Trace.Unindent();
+
+            return new ArrayLiteral(currentToken, elements);
+        }
+
+        private IExpression ParseHashLiteral()
+        {
+            Trace.Indent();
+            Trace.WriteLine("BEGIN HASH");
+
+            var currentToken = CurrentToken;
+            var pairs = new Dictionary<IExpression, IExpression>();
+
+            while (PeekToken.Type != TokenType.RBrace)
+            {
+                AdvanceTokens();
+
+                var key = ParseExpression(Precedence.Lowest);
+
+                if (!ExpectPeek(TokenType.Colon))
+                {
+                    throw new ParseException($"Expected ':', got {PeekToken}");
+                }
+
+                AdvanceTokens();
+
+                var value = ParseExpression(Precedence.Lowest);
+
+                pairs[key] = value;
+
+                if (PeekToken.Type != TokenType.RBrace && !ExpectPeek(TokenType.Comma))
+                {
+                    throw new ParseException($"Expected '}}' or ',', got {PeekToken}");
+                }
+            }
+
+            if (!ExpectPeek(TokenType.RBrace))
+            {
+                throw new ParseException($"Expected '}}', got {PeekToken}");
+            }
+
+            Trace.WriteLine("END HASH");
+            Trace.Unindent();
+
+            return new HashLiteral(currentToken, pairs);
         }
 
         private IExpression ParseGroupedExpression()
@@ -419,7 +506,8 @@ namespace MonkeyLang
             Sum,
             Product,
             Prefix,
-            Call
+            Call,
+            Index
         }
 
     }
