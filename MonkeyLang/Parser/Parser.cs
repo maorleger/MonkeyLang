@@ -90,7 +90,6 @@ namespace MonkeyLang
                 try
                 {
                     statements.Add(ParseStatement());
-            ;
                 }
                 catch (ParseException e)
                 {

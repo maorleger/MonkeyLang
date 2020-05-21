@@ -1,9 +1,12 @@
 ﻿using Pidgin;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Runtime.CompilerServices;
 using static Pidgin.Parser;
 using static Pidgin.Parser<char>;
 
+[assembly: InternalsVisibleTo("MonkeyLang.Tests")]
 namespace MonkeyLang
 {
     [Export(typeof(Lexer))]
@@ -28,6 +31,50 @@ namespace MonkeyLang
         {
             var result = Tok(Monkey).ParseOrThrow(rawInput);
             Tokens.EnqueueAll(result);
+        }
+
+        internal void Clear()
+        {
+            Tokens.Clear();
+        }
+
+        internal bool ShouldParse()
+        {
+            Stack<Token> tokens = new Stack<Token>();
+            Dictionary<TokenType, TokenType> matchedTokens = new Dictionary<TokenType, TokenType>()
+            {
+                { TokenType.RParen, TokenType.LParen },
+                { TokenType.RBrace, TokenType.LBrace },
+                { TokenType.RBracket, TokenType.LBracket }
+            };
+
+            foreach (var currentToken in Tokens)
+            {
+                switch (currentToken.Type)
+                {
+                    case TokenType.LParen:
+                    case TokenType.LBrace:
+                    case TokenType.LBracket:
+                        tokens.Push(currentToken);
+                        break;
+                    case TokenType.RParen:
+                    case TokenType.RBrace:
+                    case TokenType.RBracket:
+                        if (tokens.Count <= 0)
+                        {
+                            // In a totally malformed scenario best to just 
+                            // pass the string to the parser
+                            return true;
+                        }
+                        if (tokens.Pop().Type != matchedTokens[currentToken.Type])
+                        {
+                            return false;
+                        }
+                        break;
+                }
+            }
+
+            return tokens.Count == 0;
         }
 
         private Queue<Token> Tokens { get; }

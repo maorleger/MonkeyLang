@@ -202,5 +202,26 @@ if (5 < 10) {
                 new object[] { "10" , new Token(TokenType.Int, "10") },
                 new object[] { "$" , new Token(TokenType.Illegal, "$") },
             };
+
+        [Theory]
+        [MemberData(nameof(MatchedParens))]
+        public void Lexer_CanCheckForIncompleteStatements(string input, bool expected)
+        {
+            subject.Tokenize(input);
+            Assert.Equal(expected, subject.ShouldParse());
+        }
+
+        public static IEnumerable<object[]> MatchedParens =>
+            new List<object[]>
+            {
+                new object[] { "", true },
+                new object[] { "()", true },
+                new object[] { "[]", true },
+                new object[] { "[{}]", true },
+                new object[] { "(", false },
+                new object[] { "[{]}", false },
+                new object[] { "{()[()]}{}{}[[[]]]([{}])", true }
+            };
+            
     }
 }
