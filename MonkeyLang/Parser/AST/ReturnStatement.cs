@@ -11,8 +11,8 @@
         public Token Token { get; }
         public IExpression ReturnValue { get; }
 
-        public string TokenLiteral => Token.Literal;
+        public string TokenLiteral => this.Token.Literal;
 
-        public string StringValue => $"{TokenLiteral} {ReturnValue?.StringValue};";
+        public string StringValue => $"{this.TokenLiteral} {this.ReturnValue?.StringValue};";
     }
 }

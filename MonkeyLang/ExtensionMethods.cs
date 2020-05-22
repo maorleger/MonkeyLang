@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Net;
 using System.Reflection;
 
 namespace MonkeyLang
@@ -11,7 +9,7 @@ namespace MonkeyLang
     {
         internal static void EnqueueAll<T>(this Queue<T> queue, IEnumerable<T> items)
         {
-            foreach (var item in items)
+            foreach (T item in items)
             {
                 queue.Enqueue(item);
             }
@@ -20,7 +18,7 @@ namespace MonkeyLang
         internal static IEnumerable<T> Intersperse<T>(this IEnumerable<T> items, T separator)
         {
             bool first = true;
-            foreach (var item in items)
+            foreach (T item in items)
             {
                 if (!first) yield return separator;
                 yield return item;

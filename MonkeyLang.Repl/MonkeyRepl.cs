@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
-using System.Transactions;
 
 namespace MonkeyLang.Repl
 {
@@ -13,7 +8,7 @@ namespace MonkeyLang.Repl
     {
         [ImportingConstructor]
         public MonkeyRepl(
-            [Import] Evaluator evaluator, 
+            [Import] Evaluator evaluator,
             [Import] InputValidator validator,
             [Import] RuntimeEnvironment runtimeEnvironment)
         {
@@ -34,13 +29,13 @@ namespace MonkeyLang.Repl
             string line;
             while (!string.IsNullOrWhiteSpace(line = Console.ReadLine()))
             {
-                Validator.AppendLine(line);
-                if (Validator.ShouldParse())
+                this.Validator.AppendLine(line);
+                if (this.Validator.ShouldParse())
                 {
-                    string userInput = Validator.GetInput();
-                    Validator.Clear();
+                    string userInput = this.Validator.GetInput();
+                    this.Validator.Clear();
 
-                    Console.WriteLine(Evaluator.Evaluate(userInput, Environment).Inspect());
+                    Console.WriteLine(this.Evaluator.Evaluate(userInput, this.Environment).Inspect());
                 }
             }
         }

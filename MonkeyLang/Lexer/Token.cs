@@ -13,7 +13,7 @@
 
         public override string ToString()
         {
-            return $"Token [Type='{Type}', Literal='{Literal}']";
+            return $"Token [Type='{this.Type}', Literal='{this.Literal}']";
         }
 
         public override bool Equals(object? obj)
@@ -27,7 +27,7 @@
 
         public override int GetHashCode()
         {
-            return System.HashCode.Combine(Type, Literal);
+            return System.HashCode.Combine(this.Type, this.Literal);
         }
 
         public static bool operator ==(Token left, Token right)

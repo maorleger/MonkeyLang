@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -10,9 +9,9 @@ namespace MonkeyLang
     {
         public FunctionObject(IEnumerable<Identifier> parameters, BlockStatement body, RuntimeEnvironment environment)
         {
-            Parameters = parameters.ToImmutableList();
-            Body = body;
-            Environment = environment;
+            this.Parameters = parameters.ToImmutableList();
+            this.Body = body;
+            this.Environment = environment;
         }
 
         public IImmutableList<Identifier> Parameters { get; }
@@ -23,11 +22,11 @@ namespace MonkeyLang
 
         public string Inspect()
         {
-            StringBuilder sb = new StringBuilder("fn(");
-            sb.AppendJoin(", ", Parameters.Select(p => p.StringValue));
+            var sb = new StringBuilder("fn(");
+            sb.AppendJoin(", ", this.Parameters.Select(p => p.StringValue));
             sb.Append(")");
             sb.AppendLine();
-            sb.Append(Body.StringValue);
+            sb.Append(this.Body.StringValue);
             sb.AppendLine();
             sb.Append("}");
             return sb.ToString();

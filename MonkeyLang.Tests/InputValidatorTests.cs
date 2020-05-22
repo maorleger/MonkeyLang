@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Xunit;
+﻿using Xunit;
 
 namespace MonkeyLang.Tests
 {
@@ -11,42 +8,42 @@ namespace MonkeyLang.Tests
 
         public InputValidatorTests()
         {
-            subject = new InputValidator(new Lexer());
+            this.subject = new InputValidator(new Lexer());
         }
 
         [Fact]
         public void ShouldParse_BasicTests()
         {
-            subject.AppendLine("hello");
-            subject.AppendLine("world");
-            Assert.True(subject.ShouldParse());
+            this.subject.AppendLine("hello");
+            this.subject.AppendLine("world");
+            Assert.True(this.subject.ShouldParse());
 
-            subject.AppendLine("[");
-            Assert.False(subject.ShouldParse());
+            this.subject.AppendLine("[");
+            Assert.False(this.subject.ShouldParse());
         }
 
         [Fact]
         public void ShouldParse_WhenStringIsMalformed_ReturnsTrue()
         {
-            subject.AppendLine("]");
-            Assert.True(subject.ShouldParse());
+            this.subject.AppendLine("]");
+            Assert.True(this.subject.ShouldParse());
         }
 
         [Fact]
         public void GetInput_ReturnsTheCompleteString()
         {
-            subject.AppendLine("[");
-            Assert.Equal("[", subject.GetInput());
-            subject.AppendLine("abc");
-            Assert.Equal("[abc", subject.GetInput());
+            this.subject.AppendLine("[");
+            Assert.Equal("[", this.subject.GetInput());
+            this.subject.AppendLine("abc");
+            Assert.Equal("[abc", this.subject.GetInput());
         }
 
         [Fact]
         public void Clear_ResetsInternalState()
         {
-            subject.AppendLine("[");
-            subject.Clear();
-            Assert.Equal(string.Empty, subject.GetInput());
+            this.subject.AppendLine("[");
+            this.subject.Clear();
+            Assert.Equal(string.Empty, this.subject.GetInput());
         }
     }
 }

@@ -1,22 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace MonkeyLang
+﻿namespace MonkeyLang
 {
     public class Boolean : IExpression
     {
         public Boolean(Token token, bool value)
         {
-            Token = token;
-            Value = value;
+            this.Token = token;
+            this.Value = value;
         }
 
         public Token Token { get; }
         public bool Value { get; }
 
-        public string TokenLiteral => Token.Literal;
+        public string TokenLiteral => this.Token.Literal;
 
-        public string StringValue => TokenLiteral;
+        public string StringValue => this.TokenLiteral;
     }
 }

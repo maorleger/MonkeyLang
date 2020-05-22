@@ -11,8 +11,8 @@
         public Token Token { get; }
         public string Value { get; }
 
-        public string TokenLiteral => Token.Literal;
+        public string TokenLiteral => this.Token.Literal;
 
-        public string StringValue => Value;
+        public string StringValue => this.Value;
     }
 }

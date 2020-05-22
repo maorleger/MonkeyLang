@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -10,7 +9,7 @@ namespace MonkeyLang
     {
         public ArrayObject(IEnumerable<IObject> elements)
         {
-            Elements = elements.ToImmutableList();
+            this.Elements = elements.ToImmutableList();
         }
 
         public IImmutableList<IObject> Elements { get; }
@@ -19,8 +18,8 @@ namespace MonkeyLang
 
         public string Inspect()
         {
-            StringBuilder sb = new StringBuilder("[");
-            sb.AppendJoin(", ", Elements.Select(el => el.Inspect()));
+            var sb = new StringBuilder("[");
+            sb.AppendJoin(", ", this.Elements.Select(el => el.Inspect()));
             sb.AppendLine("]");
 
             return sb.ToString();

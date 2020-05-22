@@ -8,19 +8,19 @@ namespace MonkeyLang
     {
         public Program(IEnumerable<IStatement> statements)
         {
-            Statements = statements.ToImmutableList();
+            this.Statements = statements.ToImmutableList();
         }
 
         public IImmutableList<IStatement> Statements { get; }
 
         public string TokenLiteral =>
-            Statements
+            this.Statements
             .DefaultIfEmpty(new NullStatement())
             .First()
             .TokenLiteral;
 
         public string StringValue =>
-            Statements
+            this.Statements
             .Aggregate(string.Empty, (acc, st) => acc + st.StringValue);
 
         private class NullStatement : IStatement

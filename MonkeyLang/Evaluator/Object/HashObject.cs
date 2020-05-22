@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -10,7 +9,7 @@ namespace MonkeyLang
     {
         public HashObject(IReadOnlyDictionary<IObject, IObject> pairs)
         {
-            Pairs = pairs.ToImmutableDictionary();
+            this.Pairs = pairs.ToImmutableDictionary();
         }
 
         public IImmutableDictionary<IObject, IObject> Pairs { get; }
@@ -19,8 +18,8 @@ namespace MonkeyLang
 
         public string Inspect()
         {
-            StringBuilder sb = new StringBuilder("{");
-            sb.AppendJoin(", ", Pairs.Select(kv => $"{kv.Key.Inspect()}:{kv.Value.Inspect()}"));
+            var sb = new StringBuilder("{");
+            sb.AppendJoin(", ", this.Pairs.Select(kv => $"{kv.Key.Inspect()}:{kv.Value.Inspect()}"));
             sb.Append("}");
             return sb.ToString();
         }

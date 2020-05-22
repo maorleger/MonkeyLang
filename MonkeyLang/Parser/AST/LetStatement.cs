@@ -4,9 +4,9 @@
     {
         public LetStatement(Token token, Identifier name, IExpression value)
         {
-            Token = token;
-            Name = name;
-            Value = value;
+            this.Token = token;
+            this.Name = name;
+            this.Value = value;
         }
 
         public Token Token { get; }
@@ -15,6 +15,6 @@
 
         public string TokenLiteral => this.Token.Literal;
 
-        public string StringValue => $"{TokenLiteral} {Name.StringValue} = {Value?.StringValue};";
+        public string StringValue => $"{this.TokenLiteral} {this.Name.StringValue} = {this.Value?.StringValue};";
     }
 }

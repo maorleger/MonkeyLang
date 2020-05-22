@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Text;
 
 namespace MonkeyLang
@@ -11,24 +9,24 @@ namespace MonkeyLang
     {
         public CallExpression(Token token, IExpression function, IEnumerable<IExpression> arguments)
         {
-            Token = token;
-            Function = function;
-            Arguments = arguments.ToImmutableList();
+            this.Token = token;
+            this.Function = function;
+            this.Arguments = arguments.ToImmutableList();
         }
 
         public Token Token { get; }
         public IExpression Function { get; }
         public IImmutableList<IExpression> Arguments { get; }
 
-        public string TokenLiteral => Token.Literal;
+        public string TokenLiteral => this.Token.Literal;
 
         public string StringValue
         {
             get
             {
-                StringBuilder result = new StringBuilder(Function.StringValue);
+                var result = new StringBuilder(this.Function.StringValue);
                 result.Append("(");
-                result.AppendJoin(", ", Arguments.Select(a => a.StringValue));
+                result.AppendJoin(", ", this.Arguments.Select(a => a.StringValue));
                 result.Append(")");
 
                 return result.ToString();

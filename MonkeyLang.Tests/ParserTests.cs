@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using Xunit;
 
 namespace MonkeyLang.Tests
@@ -11,7 +9,7 @@ namespace MonkeyLang.Tests
     {
         public ParserTests()
         {
-            subject = new Parser(new Lexer());
+            this.subject = new Parser(new Lexer());
         }
 
         private readonly Parser subject;
@@ -19,17 +17,17 @@ namespace MonkeyLang.Tests
         [Fact]
         public void Parser_CanParseLetStatements()
         {
-            var input = @"
+            string input = @"
     let x = 5 + 6;
     let y = 10;
     let foobar = hello;
 ";
 
-            Program actual = subject.ParseProgram(input).Program;
+            Program actual = this.subject.ParseProgram(input).Program;
             Assert.NotNull(actual.Statements);
             Assert.Equal(3, actual.Statements.Count());
 
-            var expected = new []
+            string[] expected = new[]
             {
                 "x",
                 "y",
@@ -38,7 +36,7 @@ namespace MonkeyLang.Tests
 
             for (int i = 0; i < actual.Statements.Count(); i++)
             {
-                var element = actual.Statements.ElementAt(i);
+                IStatement element = actual.Statements.ElementAt(i);
                 Assert.IsType<LetStatement>(element);
                 Assert.Equal(expected[i], ((LetStatement)element).Name.TokenLiteral);
                 // TODO: test for the RHS
@@ -48,14 +46,14 @@ namespace MonkeyLang.Tests
         [Fact]
         public void Parser_CanListParseErrors()
         {
-            var input = @"
+            string input = @"
 let x 5;
 let y = 10;
 let = 10;
 let 838383;
 ";
 
-            AST actual = subject.ParseProgram(input);
+            AST actual = this.subject.ParseProgram(input);
 
             Assert.NotEmpty(actual.Errors);
             Assert.Equal(1, actual.Program.Statements.Count);
@@ -64,97 +62,97 @@ let 838383;
         [Fact]
         public void Parser_CanParseReturnStatements()
         {
-            var input = @"
+            string input = @"
 return 5;
 return fn(x,y) { x + y };
 return xyz;
 ";
 
-            AST actual = subject.ParseProgram(input);
+            AST actual = this.subject.ParseProgram(input);
 
             Assert.Equal(3, actual.Program.Statements.Count);
             Assert.Empty(actual.Errors);
             Assert.All(actual.Program.Statements, stmt => Assert.IsType<ReturnStatement>(stmt));
-                // TODO: test for the RHS
+            // TODO: test for the RHS
         }
 
         [Fact]
         public void Parser_CanParseIdentifiers()
         {
-            var input = @"
+            string input = @"
 foobar;
 ";
-            AST result = subject.ParseProgram(input);
+            AST result = this.subject.ParseProgram(input);
 
             Assert.Equal(1, result.Program.Statements.Count);
             Assert.Empty(result.Errors);
 
-            var actual = AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
+            ExpressionStatement actual = this.AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
 
             Assert.IsType<Identifier>(actual.Expression);
             Assert.Equal("foobar", actual.TokenLiteral);
-            
+
         }
 
         [Fact]
         public void Parser_CanParseIntegerLiterals()
         {
-            var input = @"
+            string input = @"
 5;
 ";
-            AST result = subject.ParseProgram(input);
+            AST result = this.subject.ParseProgram(input);
 
             Assert.Equal(1, result.Program.Statements.Count);
             Assert.Empty(result.Errors);
 
-            var actual = AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
-            var intExpression = AssertAndCast<IntegerLiteral>(actual.Expression);
+            ExpressionStatement actual = this.AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
+            IntegerLiteral intExpression = this.AssertAndCast<IntegerLiteral>(actual.Expression);
             Assert.Equal(5, intExpression.Value);
-            
+
             Assert.Equal("5", actual.TokenLiteral);
         }
 
         [Fact]
         public void Parser_CanParseBooleans()
         {
-            var input = @"
+            string input = @"
 true;
 false
 ";
 
-            AST result = subject.ParseProgram(input);
+            AST result = this.subject.ParseProgram(input);
 
             Assert.Equal(2, result.Program.Statements.Count);
             Assert.Empty(result.Errors);
 
-            var actual = AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
-            var boolExpression = AssertAndCast<Boolean>(actual.Expression);
+            ExpressionStatement actual = this.AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
+            Boolean boolExpression = this.AssertAndCast<Boolean>(actual.Expression);
             Assert.True(boolExpression.Value);
 
-            actual = AssertAndCast<ExpressionStatement>(result.Program.Statements[1]);
-            boolExpression = AssertAndCast<Boolean>(actual.Expression);
+            actual = this.AssertAndCast<ExpressionStatement>(result.Program.Statements[1]);
+            boolExpression = this.AssertAndCast<Boolean>(actual.Expression);
             Assert.False(boolExpression.Value);
         }
 
         [Fact]
         public void Parser_CanParseIfExpressions()
         {
-            var input = @"
+            string input = @"
 if (x < y) { x }
 ";
 
-            AST result = subject.ParseProgram(input);
+            AST result = this.subject.ParseProgram(input);
 
             Assert.Empty(result.Errors);
             Assert.Equal(1, result.Program.Statements.Count);
 
-            var actual = AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
-            var ifExpression = AssertAndCast<IfExpression>(actual.Expression);
+            ExpressionStatement actual = this.AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
+            IfExpression ifExpression = this.AssertAndCast<IfExpression>(actual.Expression);
             Assert.Equal("(x < y)", ifExpression.Condition.StringValue);
 
             Assert.Equal(1, ifExpression.Consequence.Statements.Count);
-            var consequenceExpression = AssertAndCast<ExpressionStatement>(ifExpression.Consequence.Statements[0]);
-            var consequenceIdentifier = AssertAndCast<Identifier>(consequenceExpression.Expression);
+            ExpressionStatement consequenceExpression = this.AssertAndCast<ExpressionStatement>(ifExpression.Consequence.Statements[0]);
+            Identifier consequenceIdentifier = this.AssertAndCast<Identifier>(consequenceExpression.Expression);
             Assert.Equal("x", consequenceIdentifier.Value);
 
             Assert.Null(ifExpression.Alternative);
@@ -163,27 +161,27 @@ if (x < y) { x }
         [Fact]
         public void Parser_CanParseFunctionLiteral()
         {
-            var input = @"
+            string input = @"
 fn(x, y) { x + y; }
 ";
 
-            AST result = subject.ParseProgram(input);
+            AST result = this.subject.ParseProgram(input);
 
             Assert.Empty(result.Errors);
             Assert.Equal(1, result.Program.Statements.Count);
 
-            var actual = AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
-            var fnExpression = AssertAndCast<FunctionLiteral>(actual.Expression);
+            ExpressionStatement actual = this.AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
+            FunctionLiteral fnExpression = this.AssertAndCast<FunctionLiteral>(actual.Expression);
             Assert.Equal(2, fnExpression.Parameters.Count);
 
-            var paramExpr = AssertAndCast<Identifier>(fnExpression.Parameters[0]);
+            Identifier paramExpr = this.AssertAndCast<Identifier>(fnExpression.Parameters[0]);
             Assert.Equal("x", paramExpr.Value);
-            paramExpr = AssertAndCast<Identifier>(fnExpression.Parameters[1]);
+            paramExpr = this.AssertAndCast<Identifier>(fnExpression.Parameters[1]);
             Assert.Equal("y", paramExpr.Value);
 
             Assert.Equal(1, fnExpression.Body.Statements.Count);
-            var body = AssertAndCast<ExpressionStatement>(fnExpression.Body.Statements[0]);
-            var bodyExpr = AssertAndCast<InfixExpression>(body.Expression);
+            ExpressionStatement body = this.AssertAndCast<ExpressionStatement>(fnExpression.Body.Statements[0]);
+            InfixExpression bodyExpr = this.AssertAndCast<InfixExpression>(body.Expression);
 
             Assert.Equal("x", bodyExpr.Left.TokenLiteral);
             Assert.Equal(TokenType.Plus, bodyExpr.Operator);
@@ -193,45 +191,45 @@ fn(x, y) { x + y; }
         [Fact]
         public void Parser_CanParseCallExpressions()
         {
-            var input = @"
+            string input = @"
     add(1, 2 * 3, 4 + 5);
 ";
 
-            AST result = subject.ParseProgram(input);
+            AST result = this.subject.ParseProgram(input);
 
             Assert.Empty(result.Errors);
             Assert.Equal(1, result.Program.Statements.Count);
 
-            var actual = AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
-            var callExpression = AssertAndCast<CallExpression>(actual.Expression);
+            ExpressionStatement actual = this.AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
+            CallExpression callExpression = this.AssertAndCast<CallExpression>(actual.Expression);
             Assert.Equal("add(1, (2 * 3), (4 + 5))", callExpression.StringValue);
         }
 
         [Fact]
         public void Parser_CanParseIfElseExpressions()
         {
-            var input = @"
+            string input = @"
 if (x < y) { x } else { y }
 ";
 
-            AST result = subject.ParseProgram(input);
+            AST result = this.subject.ParseProgram(input);
 
             Assert.Equal(1, result.Program.Statements.Count);
             Assert.Empty(result.Errors);
 
-            var actual = AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
-            var ifExpression = AssertAndCast<IfExpression>(actual.Expression);
+            ExpressionStatement actual = this.AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
+            IfExpression ifExpression = this.AssertAndCast<IfExpression>(actual.Expression);
             Assert.Equal("(x < y)", ifExpression.Condition.StringValue);
 
             Assert.Equal(1, ifExpression.Consequence.Statements.Count);
-            var expr = AssertAndCast<ExpressionStatement>(ifExpression.Consequence.Statements[0]);
-            var identifier = AssertAndCast<Identifier>(expr.Expression);
+            ExpressionStatement expr = this.AssertAndCast<ExpressionStatement>(ifExpression.Consequence.Statements[0]);
+            Identifier identifier = this.AssertAndCast<Identifier>(expr.Expression);
             Assert.Equal("x", identifier.Value);
 
             Assert.NotNull(ifExpression.Alternative);
             Assert.Equal(1, ifExpression.Alternative.Statements.Count);
-            expr = AssertAndCast<ExpressionStatement>(ifExpression.Alternative.Statements[0]);
-            identifier = AssertAndCast<Identifier>(expr.Expression);
+            expr = this.AssertAndCast<ExpressionStatement>(ifExpression.Alternative.Statements[0]);
+            identifier = this.AssertAndCast<Identifier>(expr.Expression);
             Assert.Equal("y", identifier.Value);
         }
 
@@ -239,16 +237,16 @@ if (x < y) { x } else { y }
         [MemberData(nameof(PrefixExpressionData))]
         public void Parser_CanParsePrefixExpressions(string input, TokenType expectedOperator, int expectedValue)
         {
-            AST result = subject.ParseProgram(input);
+            AST result = this.subject.ParseProgram(input);
 
             Assert.Equal(1, result.Program.Statements.Count);
             Assert.Empty(result.Errors);
 
-            var stmt = AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
-            var exp = AssertAndCast<PrefixExpression>(stmt.Expression);
+            ExpressionStatement stmt = this.AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
+            PrefixExpression exp = this.AssertAndCast<PrefixExpression>(stmt.Expression);
             Assert.Equal(expectedOperator, exp.Operator);
-            
-            var intExpression = AssertAndCast<IntegerLiteral>(exp.Right);
+
+            IntegerLiteral intExpression = this.AssertAndCast<IntegerLiteral>(exp.Right);
             Assert.Equal(expectedValue, intExpression.Value);
         }
 
@@ -263,19 +261,19 @@ if (x < y) { x } else { y }
         [MemberData(nameof(InfixExpressionData))]
         public void Parser_CanParseInfixExpressions(string input, int expectedLeft, TokenType expectedOp, int expectedRight)
         {
-            AST result = subject.ParseProgram(input);
+            AST result = this.subject.ParseProgram(input);
 
             Assert.Equal(1, result.Program.Statements.Count);
             Assert.Empty(result.Errors);
 
-            var stmt = AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
-            var exp = AssertAndCast<InfixExpression>(stmt.Expression);
+            ExpressionStatement stmt = this.AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
+            InfixExpression exp = this.AssertAndCast<InfixExpression>(stmt.Expression);
             Assert.Equal(expectedOp, exp.Operator);
 
-            var intExpression = AssertAndCast<IntegerLiteral>(exp.Left);
+            IntegerLiteral intExpression = this.AssertAndCast<IntegerLiteral>(exp.Left);
             Assert.Equal(expectedLeft, intExpression.Value);
 
-            intExpression = AssertAndCast<IntegerLiteral>(exp.Right);
+            intExpression = this.AssertAndCast<IntegerLiteral>(exp.Right);
             Assert.Equal(expectedRight, intExpression.Value);
         }
 
@@ -296,7 +294,7 @@ if (x < y) { x } else { y }
         [MemberData(nameof(OperatorPrecendenceData))]
         public void Parser_CanHandleOperatorPrecendence(string input, string expected)
         {
-            AST result = subject.ParseProgram(input);
+            AST result = this.subject.ParseProgram(input);
 
             Assert.Empty(result.Errors);
 
@@ -334,14 +332,14 @@ if (x < y) { x } else { y }
         [Fact]
         public void Parser_CanParseStringLitrals()
         {
-            var input = @"""hello world"";";
+            string input = @"""hello world"";";
 
-            AST result = subject.ParseProgram(input);
+            AST result = this.subject.ParseProgram(input);
 
             Assert.Empty(result.Errors);
             Assert.Equal(1, result.Program.Statements.Count);
-            var expr = AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
-            var stringResult = AssertAndCast<StringLiteral>(expr.Expression);
+            ExpressionStatement expr = this.AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
+            StringLiteral stringResult = this.AssertAndCast<StringLiteral>(expr.Expression);
 
             Assert.Equal("hello world", stringResult.Value);
         }
@@ -349,55 +347,55 @@ if (x < y) { x } else { y }
         [Fact]
         public void Parser_CanParseArrayLiterals()
         {
-            var input = @"[1, 2 * 2, 3 + 3]";
+            string input = @"[1, 2 * 2, 3 + 3]";
 
-            AST result = subject.ParseProgram(input);
+            AST result = this.subject.ParseProgram(input);
 
             Assert.Empty(result.Errors);
             Assert.Equal(1, result.Program.Statements.Count);
-            var expr = AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
-            var arrayResult = AssertAndCast<ArrayLiteral>(expr.Expression);
+            ExpressionStatement expr = this.AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
+            ArrayLiteral arrayResult = this.AssertAndCast<ArrayLiteral>(expr.Expression);
             Assert.Equal(3, arrayResult.Elements.Count);
 
-            var intLiteral = AssertAndCast<IntegerLiteral>(arrayResult.Elements[0]);
+            IntegerLiteral intLiteral = this.AssertAndCast<IntegerLiteral>(arrayResult.Elements[0]);
             Assert.Equal(1, intLiteral.Value);
 
-            var exprLiteral = AssertAndCast<InfixExpression>(arrayResult.Elements[1]);
+            InfixExpression exprLiteral = this.AssertAndCast<InfixExpression>(arrayResult.Elements[1]);
             Assert.Equal("(2 * 2)", exprLiteral.StringValue);
 
-            exprLiteral = AssertAndCast<InfixExpression>(arrayResult.Elements[2]);
+            exprLiteral = this.AssertAndCast<InfixExpression>(arrayResult.Elements[2]);
             Assert.Equal("(3 + 3)", exprLiteral.StringValue);
         }
 
         [Fact]
         public void Parser_CanParseIndexExpressions()
         {
-            var input = "myArray[1 + 1]";
+            string input = "myArray[1 + 1]";
 
-            AST result = subject.ParseProgram(input);
+            AST result = this.subject.ParseProgram(input);
 
             Assert.Empty(result.Errors);
             Assert.Equal(1, result.Program.Statements.Count);
-            var expr = AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
-            var indexExpr = AssertAndCast<IndexExpression>(expr.Expression);
+            ExpressionStatement expr = this.AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
+            IndexExpression indexExpr = this.AssertAndCast<IndexExpression>(expr.Expression);
 
-            var ident = (indexExpr.Left as Identifier).Value;
+            string ident = (indexExpr.Left as Identifier).Value;
             Assert.Equal("myArray", ident);
 
-            Parser_CanParseInfixExpressions(indexExpr.Index.StringValue, 1, TokenType.Plus, 1);
+            this.Parser_CanParseInfixExpressions(indexExpr.Index.StringValue, 1, TokenType.Plus, 1);
         }
 
         [Fact]
         public void Parser_CanParseHashLiterals()
         {
-            var input = @"{""one"":1, ""two"": 2, ""three"": 3}";
+            string input = @"{""one"":1, ""two"": 2, ""three"": 3}";
 
-            AST result = subject.ParseProgram(input);
+            AST result = this.subject.ParseProgram(input);
 
             Assert.Empty(result.Errors);
             Assert.Equal(1, result.Program.Statements.Count);
-            var expr = AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
-            var hashExpr = AssertAndCast<HashLiteral>(expr.Expression);
+            ExpressionStatement expr = this.AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
+            HashLiteral hashExpr = this.AssertAndCast<HashLiteral>(expr.Expression);
 
             Assert.Equal(3, hashExpr.Pairs.Count);
 
@@ -418,14 +416,14 @@ if (x < y) { x } else { y }
         [Fact]
         public void Parser_CanParseEmptyHashes()
         {
-            var input = "{}";
+            string input = "{}";
 
-            AST result = subject.ParseProgram(input);
+            AST result = this.subject.ParseProgram(input);
 
             Assert.Empty(result.Errors);
             Assert.Equal(1, result.Program.Statements.Count);
-            var expr = AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
-            var hashExpr = AssertAndCast<HashLiteral>(expr.Expression);
+            ExpressionStatement expr = this.AssertAndCast<ExpressionStatement>(result.Program.Statements[0]);
+            HashLiteral hashExpr = this.AssertAndCast<HashLiteral>(expr.Expression);
 
             Assert.Equal(0, hashExpr.Pairs.Count);
         }

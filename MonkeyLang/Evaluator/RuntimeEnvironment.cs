@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Text;
@@ -22,14 +21,14 @@ namespace MonkeyLang
 
         public IObject Set(string name, IObject value)
         {
-            Store[name] = value;
+            this.Store[name] = value;
             return value;
-        } 
+        }
 
         public IObject? Get(string name)
         {
-            Store.TryGetValue(name, out IObject? value);
-            value ??= Parent?.Get(name);
+            this.Store.TryGetValue(name, out IObject? value);
+            value ??= this.Parent?.Get(name);
             return value;
         }
 
@@ -37,13 +36,13 @@ namespace MonkeyLang
 
         public string Inspect()
         {
-            StringBuilder sb = new StringBuilder("Environment: ");
+            var sb = new StringBuilder("Environment: ");
             sb.AppendLine();
-            sb.AppendJoin(System.Environment.NewLine, Store.Select(kv => $"[{kv.Key}={kv.Value.Inspect()}]"));
+            sb.AppendJoin(System.Environment.NewLine, this.Store.Select(kv => $"[{kv.Key}={kv.Value.Inspect()}]"));
             sb.AppendLine();
-            if (Parent != null)
+            if (this.Parent != null)
             {
-                sb.AppendLine(Parent.Inspect());
+                sb.AppendLine(this.Parent.Inspect());
             }
             return sb.ToString();
         }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace MonkeyLang
 {
@@ -9,7 +8,7 @@ namespace MonkeyLang
     {
         public BuiltIn(Func<IObject[], IObject> fn)
         {
-            Fn = fn;
+            this.Fn = fn;
         }
 
         public ObjectType Type => ObjectType.BuiltIn;
@@ -17,7 +16,7 @@ namespace MonkeyLang
         public Func<IObject[], IObject> Fn { get; }
 
         public string Inspect() => "builtin function";
-        
+
         public static IObject BuiltInLen(IEnumerable<IObject> args)
         {
             if (args.Count() != 1)
@@ -91,7 +90,7 @@ namespace MonkeyLang
 
         public static IObject BuiltInPuts(IEnumerable<IObject> args)
         {
-            foreach (var item in args)
+            foreach (IObject? item in args)
             {
                 Console.WriteLine(item.Inspect());
             }

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Text;
 
 namespace MonkeyLang
 {
@@ -19,27 +17,27 @@ namespace MonkeyLang
 
         public ObjectType Type => ObjectType.Boolean;
 
-        public string Inspect() => Value.ToString();
+        public string Inspect() => this.Value.ToString();
 
         internal static BooleanObject FromNative(bool value) => value ? True : False;
 
         public override bool Equals(object? obj)
         {
-            return Equals(obj as BooleanObject);
+            return this.Equals(obj as BooleanObject);
         }
 
-        public bool Equals(IObject? other) => Equals(other as BooleanObject);
+        public bool Equals(IObject? other) => this.Equals(other as BooleanObject);
 
         public bool Equals(BooleanObject? other)
         {
             return other != null &&
-                   Value == other.Value &&
-                   Type == other.Type;
+                   this.Value == other.Value &&
+                   this.Type == other.Type;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Value, Type);
+            return HashCode.Combine(this.Value, this.Type);
         }
 
         public static bool operator ==(BooleanObject? left, BooleanObject? right)

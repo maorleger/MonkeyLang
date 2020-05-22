@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Text;
 
 namespace MonkeyLang
 {
@@ -16,23 +14,23 @@ namespace MonkeyLang
 
         public ObjectType Type => ObjectType.String;
 
-        public string Inspect() => Value;
+        public string Inspect() => this.Value;
 
         public override bool Equals(object? obj)
         {
-            return Equals(obj as StringObject);
+            return this.Equals(obj as StringObject);
         }
 
-        public bool Equals(IObject? other) => Equals(other as StringObject);
+        public bool Equals(IObject? other) => this.Equals(other as StringObject);
 
         public bool Equals(StringObject? other)
         {
-            return other != null && Value == other.Value;
+            return other != null && this.Value == other.Value;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Value);
+            return HashCode.Combine(this.Value);
         }
 
         public static bool operator ==(StringObject? left, StringObject? right)

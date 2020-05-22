@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace MonkeyLang
+﻿namespace MonkeyLang
 {
     public class InfixExpression : IExpression
     {
@@ -19,7 +15,7 @@ namespace MonkeyLang
         public TokenType Operator { get; }
         public IExpression Right { get; }
 
-        public string TokenLiteral => Token.Literal;
+        public string TokenLiteral => this.Token.Literal;
 
         public string StringValue => $"({this.Left.StringValue} {this.Token.Literal} {this.Right.StringValue})";
     }

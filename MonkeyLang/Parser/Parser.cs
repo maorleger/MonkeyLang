@@ -1,10 +1,7 @@
-﻿using Pidgin;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
 
 namespace MonkeyLang
 {
@@ -17,32 +14,32 @@ namespace MonkeyLang
             this.Lexer = lexer;
             this.PrefixParseFns = new Dictionary<TokenType, Func<IExpression>>()
             {
-                { TokenType.Ident, () => new Identifier(CurrentToken, CurrentToken.Literal) },
-                { TokenType.True, () => new Boolean(CurrentToken, true) },
-                { TokenType.False, () => new Boolean(CurrentToken, false) },
-                { TokenType.Int, () => new IntegerLiteral(CurrentToken, int.Parse(CurrentToken.Literal)) },
-                { TokenType.String, () => new StringLiteral(CurrentToken, CurrentToken.Literal) },
-                { TokenType.Bang, ParsePrefixExpression },
-                { TokenType.Minus, ParsePrefixExpression },
-                { TokenType.LParen, ParseGroupedExpression },
-                { TokenType.If, ParseIfExpression },
-                { TokenType.Function, ParseFunctionLiteral },
-                { TokenType.LBracket, ParseArrayLiteral },
-                { TokenType.LBrace, ParseHashLiteral }
+                { TokenType.Ident, () => new Identifier(this.CurrentToken, this.CurrentToken.Literal) },
+                { TokenType.True, () => new Boolean(this.CurrentToken, true) },
+                { TokenType.False, () => new Boolean(this.CurrentToken, false) },
+                { TokenType.Int, () => new IntegerLiteral(this.CurrentToken, int.Parse(this.CurrentToken.Literal)) },
+                { TokenType.String, () => new StringLiteral(this.CurrentToken, this.CurrentToken.Literal) },
+                { TokenType.Bang, this.ParsePrefixExpression },
+                { TokenType.Minus, this.ParsePrefixExpression },
+                { TokenType.LParen, this.ParseGroupedExpression },
+                { TokenType.If, this.ParseIfExpression },
+                { TokenType.Function, this.ParseFunctionLiteral },
+                { TokenType.LBracket, this.ParseArrayLiteral },
+                { TokenType.LBrace, this.ParseHashLiteral }
             };
 
             this.InfixParseFns = new Dictionary<TokenType, Func<IExpression, IExpression>>()
             {
-                { TokenType.Plus, ParseInfixExpression },
-                { TokenType.Minus, ParseInfixExpression },
-                { TokenType.Slash, ParseInfixExpression },
-                { TokenType.Asterisk, ParseInfixExpression },
-                { TokenType.Eq, ParseInfixExpression },
-                { TokenType.Not_Eq, ParseInfixExpression },
-                { TokenType.LT, ParseInfixExpression },
-                { TokenType.GT, ParseInfixExpression },
-                { TokenType.LParen, ParseCallExpression },
-                { TokenType.LBracket, ParseIndexExpression }
+                { TokenType.Plus, this.ParseInfixExpression },
+                { TokenType.Minus, this.ParseInfixExpression },
+                { TokenType.Slash, this.ParseInfixExpression },
+                { TokenType.Asterisk, this.ParseInfixExpression },
+                { TokenType.Eq, this.ParseInfixExpression },
+                { TokenType.Not_Eq, this.ParseInfixExpression },
+                { TokenType.LT, this.ParseInfixExpression },
+                { TokenType.GT, this.ParseInfixExpression },
+                { TokenType.LParen, this.ParseCallExpression },
+                { TokenType.LBracket, this.ParseIndexExpression }
             };
         }
 
@@ -66,14 +63,14 @@ namespace MonkeyLang
             { TokenType.LBracket, Precedence.Index }
         };
 
-        private Precedence PeekPrecedence() => Precedences.GetValueOrDefault(PeekToken.Type, Precedence.Lowest);
+        private Precedence PeekPrecedence() => this.Precedences.GetValueOrDefault(this.PeekToken.Type, Precedence.Lowest);
 
-        private Precedence CurrentPrecedence() => Precedences.GetValueOrDefault(CurrentToken.Type, Precedence.Lowest);
+        private Precedence CurrentPrecedence() => this.Precedences.GetValueOrDefault(this.CurrentToken.Type, Precedence.Lowest);
 
         private void AdvanceTokens()
         {
-            this.CurrentToken = PeekToken;
-            this.PeekToken = Lexer.NextToken();
+            this.CurrentToken = this.PeekToken;
+            this.PeekToken = this.Lexer.NextToken();
         }
 
         public AST ParseProgram(string input)
@@ -82,21 +79,21 @@ namespace MonkeyLang
             var errors = new List<ParseException>();
 
             this.Lexer.Tokenize(input);
-            AdvanceTokens();
-            AdvanceTokens();
+            this.AdvanceTokens();
+            this.AdvanceTokens();
 
-            while (CurrentToken.Type != TokenType.EOF)
+            while (this.CurrentToken.Type != TokenType.EOF)
             {
                 try
                 {
-                    statements.Add(ParseStatement());
+                    statements.Add(this.ParseStatement());
                 }
                 catch (ParseException e)
                 {
                     errors.Add(e); // only add one parse error per statement
-                    AdvanceToSemicolon();
+                    this.AdvanceToSemicolon();
                 }
-                AdvanceTokens();
+                this.AdvanceTokens();
             }
 
             return new AST(new Program(statements), errors);
@@ -104,11 +101,11 @@ namespace MonkeyLang
 
         private IStatement ParseStatement()
         {
-            return CurrentToken.Type switch
+            return this.CurrentToken.Type switch
             {
-                TokenType.Let => ParseLetStatement(),
-                TokenType.Return => ParseReturnStatement(),
-                _ => ParseExpressionStatement()
+                TokenType.Let => this.ParseLetStatement(),
+                TokenType.Return => this.ParseReturnStatement(),
+                _ => this.ParseExpressionStatement()
             };
         }
 
@@ -117,13 +114,13 @@ namespace MonkeyLang
             Trace.Indent();
             Trace.WriteLine("BEGIN RETURN");
 
-            var returnToken = CurrentToken;
+            Token returnToken = this.CurrentToken;
 
-            AdvanceTokens();
+            this.AdvanceTokens();
 
-            var returnValue = ParseExpression(Precedence.Lowest);
+            IExpression? returnValue = this.ParseExpression(Precedence.Lowest);
 
-            AdvanceToSemicolon();
+            this.AdvanceToSemicolon();
 
             Trace.WriteLine("END RETURN");
             Trace.Unindent();
@@ -135,25 +132,25 @@ namespace MonkeyLang
         {
             Trace.Indent();
             Trace.WriteLine("BEGIN LET");
-            var letToken = CurrentToken;
+            Token letToken = this.CurrentToken;
 
-            if (!ExpectPeek(TokenType.Ident))
+            if (!this.ExpectPeek(TokenType.Ident))
             {
-                throw new ParseException($"Expected an identifier, got {PeekToken}");
+                throw new ParseException($"Expected an identifier, got {this.PeekToken}");
             }
 
-            Identifier name = new Identifier(CurrentToken, CurrentToken.Literal);
+            var name = new Identifier(this.CurrentToken, this.CurrentToken.Literal);
 
-            if (!ExpectPeek(TokenType.Assign))
+            if (!this.ExpectPeek(TokenType.Assign))
             {
-                throw new ParseException($"Expected an assignment, got {PeekToken}");
+                throw new ParseException($"Expected an assignment, got {this.PeekToken}");
             }
 
-            AdvanceTokens();
+            this.AdvanceTokens();
 
-            var letValue = ParseExpression(Precedence.Lowest);
+            IExpression? letValue = this.ParseExpression(Precedence.Lowest);
 
-            AdvanceToSemicolon();
+            this.AdvanceToSemicolon();
 
             Trace.WriteLine("END LET");
             Trace.Unindent();
@@ -165,11 +162,11 @@ namespace MonkeyLang
         {
             Trace.Indent();
             Trace.WriteLine("BEGIN EXPRESSION_STATEMENT");
-            var expressionToken = CurrentToken;
+            Token expressionToken = this.CurrentToken;
 
-            var expression = ParseExpression(Precedence.Lowest);
+            IExpression? expression = this.ParseExpression(Precedence.Lowest);
 
-            ExpectPeek(TokenType.Semicolon); // Throw away the result
+            this.ExpectPeek(TokenType.Semicolon); // Throw away the result
 
             Trace.WriteLine("END EXPRESSION_STATEMENT");
             Trace.Unindent();
@@ -180,23 +177,23 @@ namespace MonkeyLang
         {
             Trace.Indent();
             Trace.WriteLine("BEGIN EXPRESSION");
-            PrefixParseFns.TryGetValue(CurrentToken.Type, out var prefix);
+            this.PrefixParseFns.TryGetValue(this.CurrentToken.Type, out Func<IExpression>? prefix);
             if (prefix == null)
             {
-                throw new ParseException($"no prefix parse function for {CurrentToken}");
+                throw new ParseException($"no prefix parse function for {this.CurrentToken}");
             }
-            var leftExpression = prefix();
+            IExpression? leftExpression = prefix();
 
-            while (PeekToken.Type != TokenType.Semicolon && precendence < PeekPrecedence())
+            while (this.PeekToken.Type != TokenType.Semicolon && precendence < this.PeekPrecedence())
             {
-                if (!InfixParseFns.ContainsKey(PeekToken.Type))
+                if (!this.InfixParseFns.ContainsKey(this.PeekToken.Type))
                 {
                     return leftExpression;
                 }
 
-                AdvanceTokens();
+                this.AdvanceTokens();
 
-                leftExpression = InfixParseFns[CurrentToken.Type](leftExpression);
+                leftExpression = this.InfixParseFns[this.CurrentToken.Type](leftExpression);
             }
 
             Trace.WriteLine("END EXPRESSION");
@@ -208,11 +205,11 @@ namespace MonkeyLang
         {
             Trace.Indent();
             Trace.WriteLine("BEGIN PREFIX");
-            var token = CurrentToken;
+            Token token = this.CurrentToken;
 
-            AdvanceTokens();
+            this.AdvanceTokens();
 
-            var right = ParseExpression(Precedence.Prefix);
+            IExpression? right = this.ParseExpression(Precedence.Prefix);
 
             Trace.WriteLine("END PREFIX");
             Trace.Unindent();
@@ -224,25 +221,25 @@ namespace MonkeyLang
             Trace.Indent();
             Trace.WriteLine("BEGIN INFIX");
 
-            var token = CurrentToken;
-            var precedence = CurrentPrecedence();
+            Token token = this.CurrentToken;
+            Precedence precedence = this.CurrentPrecedence();
 
-            AdvanceTokens();
+            this.AdvanceTokens();
 
-            var right = ParseExpression(precedence);
+            IExpression? right = this.ParseExpression(precedence);
 
             Trace.WriteLine("END INFIX");
             Trace.Unindent();
             return new InfixExpression(token, left, token.Type, right);
         }
-        
+
         private IExpression ParseCallExpression(IExpression function)
         {
             Trace.Indent();
             Trace.WriteLine("BEGIN CALL_EXPRESSION");
 
-            var token = CurrentToken;
-            var arguments = ParseExpressionList(TokenType.RParen);
+            Token token = this.CurrentToken;
+            IEnumerable<IExpression>? arguments = this.ParseExpressionList(TokenType.RParen);
 
             Trace.WriteLine("END CALL_EXPRESSION");
             Trace.Unindent();
@@ -255,15 +252,15 @@ namespace MonkeyLang
             Trace.Indent();
             Trace.WriteLine("BEGIN INDEX_EXPRESSION");
 
-            var token = CurrentToken;
+            Token token = this.CurrentToken;
 
-            AdvanceTokens();
+            this.AdvanceTokens();
 
-            var index = ParseExpression(Precedence.Lowest);
+            IExpression? index = this.ParseExpression(Precedence.Lowest);
 
-            if (!ExpectPeek(TokenType.RBracket))
+            if (!this.ExpectPeek(TokenType.RBracket))
             {
-                throw new ParseException($"expected {TokenType.RBracket.GetDescription()}, got {PeekToken}");
+                throw new ParseException($"expected {TokenType.RBracket.GetDescription()}, got {this.PeekToken}");
             }
 
             Trace.WriteLine("END INDEX_EXPRESSION");
@@ -274,27 +271,27 @@ namespace MonkeyLang
 
         private IEnumerable<IExpression> ParseExpressionList(TokenType end)
         {
-            List<IExpression> result = new List<IExpression>();
+            var result = new List<IExpression>();
 
-            AdvanceTokens();
+            this.AdvanceTokens();
 
-            if (CurrentToken.Type == end)
+            if (this.CurrentToken.Type == end)
             {
                 return result;
             }
 
-            result.Add(ParseExpression(Precedence.Lowest));
+            result.Add(this.ParseExpression(Precedence.Lowest));
 
-            while (PeekToken.Type == TokenType.Comma)
+            while (this.PeekToken.Type == TokenType.Comma)
             {
-                AdvanceTokens();
-                AdvanceTokens();
-                result.Add(ParseExpression(Precedence.Lowest));
+                this.AdvanceTokens();
+                this.AdvanceTokens();
+                result.Add(this.ParseExpression(Precedence.Lowest));
             }
 
-            if (!ExpectPeek(end))
+            if (!this.ExpectPeek(end))
             {
-                throw new ParseException($"Expected {end.GetDescription()}, got {PeekToken}");
+                throw new ParseException($"Expected {end.GetDescription()}, got {this.PeekToken}");
             }
 
             return result;
@@ -305,15 +302,15 @@ namespace MonkeyLang
             Trace.Indent();
             Trace.WriteLine("BEGIN FUNCTION");
 
-            var token = CurrentToken;
+            Token token = this.CurrentToken;
 
-            ExpectPeek(TokenType.LParen);
+            this.ExpectPeek(TokenType.LParen);
 
-            var parameters = ParseFunctionParameters();
+            IEnumerable<Identifier>? parameters = this.ParseFunctionParameters();
 
-            ExpectPeek(TokenType.LBrace);
+            this.ExpectPeek(TokenType.LBrace);
 
-            var body = ParseBlockStatement();
+            BlockStatement? body = this.ParseBlockStatement();
 
             Trace.WriteLine("END FUNCTION");
             Trace.Unindent();
@@ -323,26 +320,26 @@ namespace MonkeyLang
 
         private IEnumerable<Identifier> ParseFunctionParameters()
         {
-            List<Identifier> result = new List<Identifier>();
+            var result = new List<Identifier>();
 
-            AdvanceTokens();
+            this.AdvanceTokens();
 
             // No parameters
-            if (CurrentToken.Type == TokenType.RParen)
+            if (this.CurrentToken.Type == TokenType.RParen)
             {
                 return result;
             }
 
-            result.Add(new Identifier(CurrentToken, CurrentToken.Literal));
+            result.Add(new Identifier(this.CurrentToken, this.CurrentToken.Literal));
 
-            while (PeekToken.Type == TokenType.Comma)
+            while (this.PeekToken.Type == TokenType.Comma)
             {
-                AdvanceTokens();
-                AdvanceTokens();
-                result.Add(new Identifier(CurrentToken, CurrentToken.Literal));
+                this.AdvanceTokens();
+                this.AdvanceTokens();
+                result.Add(new Identifier(this.CurrentToken, this.CurrentToken.Literal));
             }
 
-            ExpectPeek(TokenType.RParen);
+            this.ExpectPeek(TokenType.RParen);
 
             return result;
         }
@@ -352,9 +349,9 @@ namespace MonkeyLang
             Trace.Indent();
             Trace.WriteLine("BEGIN ARRAY");
 
-            var currentToken = CurrentToken;
+            Token currentToken = this.CurrentToken;
 
-            IEnumerable<IExpression> elements = ParseExpressionList(TokenType.RBracket);
+            IEnumerable<IExpression> elements = this.ParseExpressionList(TokenType.RBracket);
 
             Trace.WriteLine("END ARRAY");
             Trace.Unindent();
@@ -367,35 +364,35 @@ namespace MonkeyLang
             Trace.Indent();
             Trace.WriteLine("BEGIN HASH");
 
-            var currentToken = CurrentToken;
+            Token currentToken = this.CurrentToken;
             var pairs = new Dictionary<IExpression, IExpression>();
 
-            while (PeekToken.Type != TokenType.RBrace)
+            while (this.PeekToken.Type != TokenType.RBrace)
             {
-                AdvanceTokens();
+                this.AdvanceTokens();
 
-                var key = ParseExpression(Precedence.Lowest);
+                IExpression? key = this.ParseExpression(Precedence.Lowest);
 
-                if (!ExpectPeek(TokenType.Colon))
+                if (!this.ExpectPeek(TokenType.Colon))
                 {
-                    throw new ParseException($"Expected ':', got {PeekToken}");
+                    throw new ParseException($"Expected ':', got {this.PeekToken}");
                 }
 
-                AdvanceTokens();
+                this.AdvanceTokens();
 
-                var value = ParseExpression(Precedence.Lowest);
+                IExpression? value = this.ParseExpression(Precedence.Lowest);
 
                 pairs[key] = value;
 
-                if (PeekToken.Type != TokenType.RBrace && !ExpectPeek(TokenType.Comma))
+                if (this.PeekToken.Type != TokenType.RBrace && !this.ExpectPeek(TokenType.Comma))
                 {
-                    throw new ParseException($"Expected '}}' or ',', got {PeekToken}");
+                    throw new ParseException($"Expected '}}' or ',', got {this.PeekToken}");
                 }
             }
 
-            if (!ExpectPeek(TokenType.RBrace))
+            if (!this.ExpectPeek(TokenType.RBrace))
             {
-                throw new ParseException($"Expected '}}', got {PeekToken}");
+                throw new ParseException($"Expected '}}', got {this.PeekToken}");
             }
 
             Trace.WriteLine("END HASH");
@@ -409,13 +406,13 @@ namespace MonkeyLang
             Trace.Indent();
             Trace.WriteLine("BEGIN GROUP");
 
-            AdvanceTokens();
+            this.AdvanceTokens();
 
-            var expression = ParseExpression(Precedence.Lowest);
+            IExpression? expression = this.ParseExpression(Precedence.Lowest);
 
-            if (!ExpectPeek(TokenType.RParen))
+            if (!this.ExpectPeek(TokenType.RParen))
             {
-                throw new ParseException($"Expected right parens, got {PeekToken.Type}");
+                throw new ParseException($"Expected right parens, got {this.PeekToken.Type}");
             }
 
             Trace.WriteLine("END GROUP");
@@ -428,33 +425,33 @@ namespace MonkeyLang
             Trace.Indent();
             Trace.WriteLine("BEGIN IF");
 
-            var currentToken = CurrentToken;
+            Token currentToken = this.CurrentToken;
 
-            if (!ExpectPeek(TokenType.LParen))
+            if (!this.ExpectPeek(TokenType.LParen))
             {
-                throw new ParseException($"Expected left parens, got {PeekToken.Type}");
+                throw new ParseException($"Expected left parens, got {this.PeekToken.Type}");
             }
 
-            var condition = ParseExpression(Precedence.Lowest);
+            IExpression? condition = this.ParseExpression(Precedence.Lowest);
 
-            if (!ExpectPeek(TokenType.LBrace))
+            if (!this.ExpectPeek(TokenType.LBrace))
             {
-                throw new ParseException($"Expected left brace, got {PeekToken.Type}");
+                throw new ParseException($"Expected left brace, got {this.PeekToken.Type}");
             }
 
-            var consequence = ParseBlockStatement();
+            BlockStatement? consequence = this.ParseBlockStatement();
             BlockStatement? alternative = null;
 
-            if (PeekToken.Type == TokenType.Else)
+            if (this.PeekToken.Type == TokenType.Else)
             {
-                AdvanceTokens();
+                this.AdvanceTokens();
 
-                if (!ExpectPeek(TokenType.LBrace))
+                if (!this.ExpectPeek(TokenType.LBrace))
                 {
-                    throw new ParseException($"Expected left brace, got {PeekToken.Type}");
+                    throw new ParseException($"Expected left brace, got {this.PeekToken.Type}");
                 }
 
-                alternative = ParseBlockStatement();
+                alternative = this.ParseBlockStatement();
             }
 
             Trace.WriteLine("END IF");
@@ -465,15 +462,15 @@ namespace MonkeyLang
 
         private BlockStatement ParseBlockStatement()
         {
-            var currentToken = CurrentToken;
+            Token currentToken = this.CurrentToken;
             var statements = new List<IStatement>();
 
-            AdvanceTokens();
+            this.AdvanceTokens();
 
-            while (CurrentToken.Type != TokenType.RBrace && CurrentToken.Type != TokenType.EOF)
+            while (this.CurrentToken.Type != TokenType.RBrace && this.CurrentToken.Type != TokenType.EOF)
             {
-                statements.Add(ParseStatement());
-                AdvanceTokens();
+                statements.Add(this.ParseStatement());
+                this.AdvanceTokens();
             }
 
             return new BlockStatement(currentToken, statements);
@@ -481,17 +478,17 @@ namespace MonkeyLang
 
         private void AdvanceToSemicolon()
         {
-            while (CurrentToken.Type != TokenType.Semicolon && CurrentToken.Type != TokenType.EOF)
+            while (this.CurrentToken.Type != TokenType.Semicolon && this.CurrentToken.Type != TokenType.EOF)
             {
-                AdvanceTokens();
+                this.AdvanceTokens();
             }
         }
 
         private bool ExpectPeek(TokenType expectedType)
         {
-            if (PeekToken.Type == expectedType)
+            if (this.PeekToken.Type == expectedType)
             {
-                AdvanceTokens();
+                this.AdvanceTokens();
                 return true;
             }
             return false;

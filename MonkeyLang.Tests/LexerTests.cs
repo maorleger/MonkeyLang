@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using MonkeyLang;
 using Xunit;
 
 namespace MonkeyLang.Tests
@@ -10,15 +9,15 @@ namespace MonkeyLang.Tests
 
         public LexerTests()
         {
-            subject = new Lexer();
+            this.subject = new Lexer();
         }
-        
+
         [Fact]
         public void Lexer_CanProcessMultipleItems()
         {
-            subject.Tokenize("x");
-            subject.Tokenize("y");
-            subject.Tokenize("z");
+            this.subject.Tokenize("x");
+            this.subject.Tokenize("y");
+            this.subject.Tokenize("z");
 
             var expected = new List<Token>()
             {
@@ -28,9 +27,9 @@ namespace MonkeyLang.Tests
                 new Token(TokenType.EOF, "")
             };
 
-            foreach (var item in expected)
+            foreach (Token item in expected)
             {
-                Assert.Equal(item, subject.NextToken());
+                Assert.Equal(item, this.subject.NextToken());
             }
         }
 
@@ -38,17 +37,17 @@ namespace MonkeyLang.Tests
         public void Lexer_WhenEmpty_DoesNotFail()
         {
             var expected = new Token(TokenType.EOF, "");
-            Assert.Equal(expected, subject.NextToken());
-            Assert.Equal(expected, subject.NextToken());
-            Assert.Equal(expected, subject.NextToken());
-            Assert.Equal(expected, subject.NextToken());
+            Assert.Equal(expected, this.subject.NextToken());
+            Assert.Equal(expected, this.subject.NextToken());
+            Assert.Equal(expected, this.subject.NextToken());
+            Assert.Equal(expected, this.subject.NextToken());
 
         }
 
         [Fact]
         public void Lexer_CanParseMultipleLines()
         {
-            subject.Tokenize(@"
+            this.subject.Tokenize(@"
 let five_things_ = 5;
 let ten = 10;
 
@@ -166,9 +165,9 @@ if (5 < 10) {
                 new Token(TokenType.EOF, "")
             };
 
-            foreach (var item in expected)
+            foreach (Token item in expected)
             {
-                var actual = subject.NextToken();
+                Token actual = this.subject.NextToken();
                 Assert.Equal(item, actual);
             }
         }
@@ -177,8 +176,8 @@ if (5 < 10) {
         [MemberData(nameof(Statements))]
         public void Lexer_CanParseIndividualTokens(string input, Token expected)
         {
-            subject.Tokenize(input);
-            var actual = subject.NextToken();
+            this.subject.Tokenize(input);
+            Token actual = this.subject.NextToken();
             Assert.Equal(expected.Literal, actual.Literal);
             Assert.Equal(expected.Type, actual.Type);
         }
@@ -207,8 +206,8 @@ if (5 < 10) {
         [MemberData(nameof(MatchedParens))]
         public void Lexer_CanCheckForIncompleteStatements(string input, bool expected)
         {
-            subject.Tokenize(input);
-            Assert.Equal(expected, subject.ShouldParse());
+            this.subject.Tokenize(input);
+            Assert.Equal(expected, this.subject.ShouldParse());
         }
 
         public static IEnumerable<object[]> MatchedParens =>
@@ -222,6 +221,6 @@ if (5 < 10) {
                 new object[] { "[{]}", false },
                 new object[] { "{()[()]}{}{}[[[]]]([{}])", true }
             };
-            
+
     }
 }

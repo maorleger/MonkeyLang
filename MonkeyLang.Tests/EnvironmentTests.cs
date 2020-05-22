@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Xunit;
+﻿using Xunit;
 
 namespace MonkeyLang.Tests
 {
@@ -11,7 +8,7 @@ namespace MonkeyLang.Tests
         public void Get_WhenValuePresent_CanReturnValue()
         {
             IObject obj = new IntegerObject(5);
-            RuntimeEnvironment subject = new RuntimeEnvironment();
+            var subject = new RuntimeEnvironment();
             subject.Set("a", obj);
             Assert.Equal(obj, subject.Get("a"));
         }
@@ -20,7 +17,7 @@ namespace MonkeyLang.Tests
         public void Get_WhenValueIsNotPresent_SearchesParents()
         {
             IObject obj = new IntegerObject(5);
-            RuntimeEnvironment subject = new RuntimeEnvironment();
+            var subject = new RuntimeEnvironment();
             subject.Set("a", obj);
             subject = subject.Extend();
             subject = subject.Extend();
@@ -31,7 +28,7 @@ namespace MonkeyLang.Tests
         public void Get_WhenShadowingOuterValue_ReturnsCorrectValue()
         {
             IObject obj = new IntegerObject(10);
-            RuntimeEnvironment subject = new RuntimeEnvironment();
+            var subject = new RuntimeEnvironment();
             subject.Set("a", new IntegerObject(5));
             subject = subject.Extend();
             subject = subject.Extend();
@@ -42,7 +39,7 @@ namespace MonkeyLang.Tests
         [Fact]
         public void Get_WhenValueNotPresent_ReturnsNull()
         {
-            RuntimeEnvironment subject = new RuntimeEnvironment();
+            var subject = new RuntimeEnvironment();
             subject = subject.Extend();
             subject = subject.Extend();
             Assert.Null(subject.Get("a"));

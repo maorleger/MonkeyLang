@@ -14,23 +14,23 @@ namespace MonkeyLang
 
         public ObjectType Type => ObjectType.Integer;
 
-        public string Inspect() => Value.ToString();
+        public string Inspect() => this.Value.ToString();
 
         public override bool Equals(object? obj)
         {
-            return Equals(obj as IntegerObject);
+            return this.Equals(obj as IntegerObject);
         }
 
-        public bool Equals(IObject? other) => Equals(other as IntegerObject);
+        public bool Equals(IObject? other) => this.Equals(other as IntegerObject);
 
         public bool Equals(IntegerObject? other)
         {
-            return other != null && Value == other.Value;
+            return other != null && this.Value == other.Value;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Value);
+            return HashCode.Combine(this.Value);
         }
 
         public static bool operator ==(IntegerObject? left, IntegerObject? right)

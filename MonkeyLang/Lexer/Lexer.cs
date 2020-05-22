@@ -1,5 +1,4 @@
 ﻿using Pidgin;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Runtime.CompilerServices;
@@ -29,26 +28,26 @@ namespace MonkeyLang
 
         public void Tokenize(string rawInput)
         {
-            var result = Tok(Monkey).ParseOrThrow(rawInput);
-            Tokens.EnqueueAll(result);
+            IEnumerable<Token>? result = Tok(Monkey).ParseOrThrow(rawInput);
+            this.Tokens.EnqueueAll(result);
         }
 
         internal void Clear()
         {
-            Tokens.Clear();
+            this.Tokens.Clear();
         }
 
         internal bool ShouldParse()
         {
-            Stack<Token> tokens = new Stack<Token>();
-            Dictionary<TokenType, TokenType> matchedTokens = new Dictionary<TokenType, TokenType>()
+            var tokens = new Stack<Token>();
+            var matchedTokens = new Dictionary<TokenType, TokenType>()
             {
                 { TokenType.RParen, TokenType.LParen },
                 { TokenType.RBrace, TokenType.LBrace },
                 { TokenType.RBracket, TokenType.LBracket }
             };
 
-            foreach (var currentToken in Tokens)
+            foreach (Token currentToken in this.Tokens)
             {
                 switch (currentToken.Type)
                 {

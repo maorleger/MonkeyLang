@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace MonkeyLang
+﻿namespace MonkeyLang
 {
     public class IfExpression : IExpression
     {
         public IfExpression(Token token, IExpression condition, BlockStatement consequence, BlockStatement? alternative)
         {
-            Token = token;
-            Condition = condition;
-            Consequence = consequence;
-            Alternative = alternative;
+            this.Token = token;
+            this.Condition = condition;
+            this.Consequence = consequence;
+            this.Alternative = alternative;
         }
 
         public Token Token { get; }
@@ -19,16 +15,16 @@ namespace MonkeyLang
         public BlockStatement Consequence { get; }
         public BlockStatement? Alternative { get; } // TODO: should this never be null?
 
-        public string TokenLiteral => Token.Literal;
+        public string TokenLiteral => this.Token.Literal;
 
         public string StringValue
         {
             get
             {
-                var result = $"if {Condition.StringValue} {Consequence.StringValue} ";
-                if (Alternative != null)
+                string? result = $"if {this.Condition.StringValue} {this.Consequence.StringValue} ";
+                if (this.Alternative != null)
                 {
-                    result += $"else {Alternative.StringValue}";
+                    result += $"else {this.Alternative.StringValue}";
                 }
                 return result;
             }

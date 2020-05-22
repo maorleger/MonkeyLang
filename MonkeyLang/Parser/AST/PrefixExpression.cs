@@ -13,7 +13,7 @@
         public TokenType Operator { get; }
         public IExpression Right { get; }
 
-        public string TokenLiteral => Token.Literal;
+        public string TokenLiteral => this.Token.Literal;
 
         public string StringValue => $"({this.Token.Literal}{this.Right.StringValue})";
     }

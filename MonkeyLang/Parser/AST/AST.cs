@@ -1,8 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 
 namespace MonkeyLang
 {
@@ -16,6 +13,6 @@ namespace MonkeyLang
 
         public Program Program { get; }
         public IImmutableList<ParseException> Errors { get; }
-        public bool HasErrors => Errors.Count > 0;
+        public bool HasErrors => this.Errors.Count > 0;
     }
 }

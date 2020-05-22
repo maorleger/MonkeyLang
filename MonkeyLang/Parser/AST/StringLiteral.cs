@@ -4,15 +4,15 @@
     {
         public StringLiteral(Token token, string value)
         {
-            Token = token;
-            Value = value;
+            this.Token = token;
+            this.Value = value;
         }
 
         public Token Token { get; }
         public string Value { get; }
 
-        public string TokenLiteral => Token.Literal;
+        public string TokenLiteral => this.Token.Literal;
 
-        public string StringValue => Value;
+        public string StringValue => this.Value;
     }
 }

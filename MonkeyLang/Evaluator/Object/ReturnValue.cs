@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace MonkeyLang
+﻿namespace MonkeyLang
 {
     public class ReturnValue : IObject
     {
         public ReturnValue(IObject value)
         {
-            Value = value;
+            this.Value = value;
         }
 
         public IObject Value { get; }
 
         public ObjectType Type => ObjectType.Return;
 
-        public string Inspect() => Value.Inspect();
+        public string Inspect() => this.Value.Inspect();
     }
 }

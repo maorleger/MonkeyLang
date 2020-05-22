@@ -11,8 +11,8 @@
         public Token Token { get; }
         public IExpression Expression { get; }
 
-        public string TokenLiteral => Token.Literal;
+        public string TokenLiteral => this.Token.Literal;
 
-        public string StringValue => Expression != null ? Expression.StringValue : string.Empty;
+        public string StringValue => this.Expression != null ? this.Expression.StringValue : string.Empty;
     }
 }

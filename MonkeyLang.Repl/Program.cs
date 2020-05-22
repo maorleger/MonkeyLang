@@ -1,10 +1,8 @@
 ﻿using CommandLine;
-using MonkeyLang;
 using MonkeyLang.Repl;
 using System;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
-using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -20,9 +18,9 @@ namespace Repl
 
         private Program()
         {
-            DirectoryCatalog catalog = new DirectoryCatalog(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+            var catalog = new DirectoryCatalog(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
 
-            Container = new CompositionContainer(catalog);
+            this.Container = new CompositionContainer(catalog);
 
             try
             {
@@ -46,7 +44,7 @@ namespace Repl
                         }
                     });
 
-            Program p = new Program();
+            var p = new Program();
             p.Repl.Start();
         }
     }
