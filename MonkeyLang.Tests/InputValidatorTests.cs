@@ -33,12 +33,20 @@ namespace MonkeyLang.Tests
         }
 
         [Fact]
-        public void ExtractString_ResetsState()
+        public void GetInput_ReturnsTheCompleteString()
         {
             subject.AppendLine("[");
-            var result = subject.ExtractString();
-            Assert.True(subject.ShouldParse());
-            Assert.Equal("[", result);
+            Assert.Equal("[", subject.GetInput());
+            subject.AppendLine("abc");
+            Assert.Equal("[abc", subject.GetInput());
+        }
+
+        [Fact]
+        public void Clear_ResetsInternalState()
+        {
+            subject.AppendLine("[");
+            subject.Clear();
+            Assert.Equal(string.Empty, subject.GetInput());
         }
     }
 }

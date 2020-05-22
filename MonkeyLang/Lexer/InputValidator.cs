@@ -20,12 +20,12 @@ namespace MonkeyLang
 
         public bool ShouldParse() => Lexer.ShouldParse();
 
-        public string ExtractString()
+        public string GetInput() => Input.ToString();
+
+        public void Clear()
         {
-            string returnVal = Input.ToString();
             Input.Clear();
             Lexer.Clear();
-            return returnVal;
         }
 
         public void AppendLine(string line)

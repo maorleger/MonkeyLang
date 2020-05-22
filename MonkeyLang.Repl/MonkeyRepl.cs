@@ -37,7 +37,10 @@ namespace MonkeyLang.Repl
                 Validator.AppendLine(line);
                 if (Validator.ShouldParse())
                 {
-                    Console.WriteLine(Evaluator.Evaluate(Validator.ExtractString(), Environment).Inspect());
+                    string userInput = Validator.GetInput();
+                    Validator.Clear();
+
+                    Console.WriteLine(Evaluator.Evaluate(userInput, Environment).Inspect());
                 }
             }
         }
