@@ -1,0 +1,16 @@
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+# Build the project
+steps:
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+
+# Run tests and auto publish test results.
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'test'
