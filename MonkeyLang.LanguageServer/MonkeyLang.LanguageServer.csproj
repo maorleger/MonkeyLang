@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GuiLabs.Language.Xml" Version="1.2.46" />
+    <PackageReference Include="OmniSharp.Extensions.LanguageServer" Version="0.18.0-beta0002" />
+  </ItemGroup>
+
+  <ProjectExtensions><VisualStudio><UserProperties vscode_4package_1json__JsonSchema="vscode" /></VisualStudio></ProjectExtensions>
+
+</Project>
